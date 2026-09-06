@@ -1,0 +1,18 @@
+id: fix-discount-total
+set: v1
+category: bug_fix
+task: >
+  The checkout total is wrong when a percentage discount code is applied. With a
+  20% discount on a $100 order the API returns 80.0 (correct), but with a 20%
+  discount on a $10 order it returns -10.0. Investigate the pricing code, fix the
+  bug, and add a regression test. Do not change the public function signatures.
+autonomy: supervised
+max_iterations: 3
+weight: 1.0
+criteria:
+  build_ok: required
+  lint_ok: optional
+  hidden_tests_pass: required
+  regression_suite_pass: required
+  no_new_high_security: required
+  judge_min_score: 70

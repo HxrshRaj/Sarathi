@@ -1,0 +1,7 @@
+files_changed:
+  - app/pricing.py
+files_not_changed:
+  - app/api.py
+file_contains:
+  - path: app/pricing.py
+    text: "def apply_discount"

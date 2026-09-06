@@ -1,0 +1,18 @@
+id: add-users-pagination
+set: v1
+category: add_endpoint
+task: >
+  Add pagination to the users listing. `list_users()` currently returns every
+  user. Add optional `limit` and `offset` parameters (default: return all, as
+  today) and a `paginate` helper, without breaking existing callers or the
+  current return type for the no-argument call. Add tests for the new behaviour.
+autonomy: supervised
+max_iterations: 3
+weight: 1.0
+criteria:
+  build_ok: required
+  lint_ok: optional
+  hidden_tests_pass: required
+  regression_suite_pass: required
+  no_new_high_security: required
+  judge_min_score: 70
