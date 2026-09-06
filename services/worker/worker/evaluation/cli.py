@@ -1,6 +1,7 @@
 """Run an evaluation from the command line (bypasses the API/queue).
 
-python -m worker.evaluation.cli v1 --model claude-sonnet-5 [--baseline <uuid>]
+python -m worker.evaluation.cli v1 --model gemini-3.5-flash
+python -m worker.evaluation.cli v1 --only fix-discount-total   # one benchmark
 """
 
 from __future__ import annotations
@@ -24,7 +25,11 @@ def main() -> None:
     parser.add_argument("--prompt-bundle", default="active")
     parser.add_argument("--baseline", default=None)
     parser.add_argument("--comparison-group", default=None)
+    parser.add_argument(
+        "--only", default=None, help="comma-separated benchmark ids to run (subset of the set)"
+    )
     args = parser.parse_args()
+    only = [s.strip() for s in args.only.split(",")] if args.only else None
 
     with SyncSessionLocal() as db:
         ev = Evaluation(
@@ -39,7 +44,7 @@ def main() -> None:
         db.commit()
         ev_id = str(ev.id)
 
-    summary = run_evaluation(ev_id)
+    summary = run_evaluation(ev_id, only=only)
     print(json.dumps({"evaluation_id": ev_id, **summary}, indent=2))
 
 

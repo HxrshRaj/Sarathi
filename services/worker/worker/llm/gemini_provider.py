@@ -78,11 +78,15 @@ class GeminiProvider(LLMProvider):
                 if m.content:
                     parts.append(types.Part(text=m.content))
                 for tc in m.tool_calls:
-                    parts.append(
-                        types.Part(
-                            function_call=types.FunctionCall(name=tc.name, args=tc.arguments)
-                        )
-                    )
+                    # Gemini 3.x requires the model's own thought_signature echoed
+                    # back on every prior functionCall part.
+                    part_kwargs: dict[str, Any] = {
+                        "function_call": types.FunctionCall(name=tc.name, args=tc.arguments)
+                    }
+                    sig = tc.provider_meta.get("thought_signature")
+                    if sig is not None:
+                        part_kwargs["thought_signature"] = sig
+                    parts.append(types.Part(**part_kwargs))
                 contents.append(types.Content(role="model", parts=parts))
             else:
                 role = "model" if m.role == "assistant" else "user"
@@ -164,7 +168,15 @@ class GeminiProvider(LLMProvider):
             fc = getattr(part, "function_call", None)
             if fc is not None:
                 args = dict(fc.args) if fc.args else {}
-                tool_calls.append(ToolCall(id=f"call_{i}_{fc.name}", name=fc.name, arguments=args))
+                meta: dict[str, Any] = {}
+                sig = getattr(part, "thought_signature", None)
+                if sig is not None:
+                    meta["thought_signature"] = sig
+                tool_calls.append(
+                    ToolCall(
+                        id=f"call_{i}_{fc.name}", name=fc.name, arguments=args, provider_meta=meta
+                    )
+                )
 
         um = getattr(resp, "usage_metadata", None)
         usage = Usage(

@@ -120,11 +120,18 @@ CI runs all of the above against a real `pgvector` service plus `bandit`,
 # from the API
 curl -X POST localhost:8000/api/evaluations/run \
   -H 'content-type: application/json' \
-  -d '{"benchmark_set":"v1","model":"gemini-2.5-pro"}'
+  -d '{"benchmark_set":"v1","model":"gemini-3.5-flash"}'
 
-# or directly
-docker compose run --rm worker python -m worker.evaluation.cli v1 --model gemini-2.5-pro
+# or directly (one benchmark, to stay within a free-tier quota)
+docker compose run --rm worker python -m worker.evaluation.cli v1 \
+  --model gemini-3.5-flash --only fix-discount-total
 ```
+
+> **Free-tier note:** a Google AI Studio *free-tier* key caps `gemini-3.5-flash`
+> at ~20 requests/day and blocks `gemini-3.x-pro` entirely. One full agent run
+> makes 15–30 model calls, so a complete multi-benchmark eval needs a paid tier
+> (or `LLM_PROVIDER=fake` for the offline pipeline check). Everything else works
+> on the free tier — connectivity, function calling, embeddings, a partial run.
 
 Each benchmark becomes a real local git repo; the full orchestrator runs against
 it; results are graded deterministically (`build` / `lint` / hidden tests /

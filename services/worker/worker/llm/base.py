@@ -64,6 +64,8 @@ class ToolCall:
     id: str
     name: str
     arguments: dict[str, Any]
+    # opaque per-provider round-trip state (e.g. Gemini 3.x `thought_signature`)
+    provider_meta: dict[str, Any] = field(default_factory=dict)
 
 
 @dataclass(slots=True)

@@ -41,7 +41,7 @@ log = get_logger("evaluation")
 _EVAL_USER_GH_ID = -1
 
 
-def run_evaluation(evaluation_id: str) -> dict:
+def run_evaluation(evaluation_id: str, only: list[str] | None = None) -> dict:
     with SyncSessionLocal() as db:
         ev = db.get(Evaluation, uuid.UUID(evaluation_id))
         assert ev
@@ -49,6 +49,9 @@ def run_evaluation(evaluation_id: str) -> dict:
         ev.started_at = datetime.now(UTC)
         db.commit()
         benchmarks = load_benchmarks(ev.benchmark_set)
+        if only:
+            wanted = set(only)
+            benchmarks = [b for b in benchmarks if b.id in wanted]
         model = ev.model
 
     if not benchmarks:
