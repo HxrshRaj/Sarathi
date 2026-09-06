@@ -4,9 +4,18 @@ from __future__ import annotations
 
 from worker.llm.base import Usage
 
-# (input_per_mtok, output_per_mtok) — approximate published list prices
+# (input_per_mtok, output_per_mtok) — approximate published list prices.
+# Gemini 3.x figures are estimates; unknown models fall back to `_DEFAULT`.
 _PRICES: dict[str, tuple[float, float]] = {
-    # Gemini
+    # Gemini 3.x
+    "gemini-3.1-pro-preview": (2.0, 12.0),
+    "gemini-3.5-flash": (0.40, 3.0),
+    "gemini-3.6-flash": (0.40, 3.0),
+    "gemini-3.7-flash": (0.40, 3.0),
+    "gemini-3.8-flash": (0.40, 3.0),
+    "gemini-3-flash-preview": (0.40, 3.0),
+    "gemini-3.1-flash-lite": (0.15, 0.60),
+    # Gemini 2.x (retired for new keys)
     "gemini-2.5-pro": (1.25, 10.0),
     "gemini-2.5-flash": (0.30, 2.50),
     "gemini-2.5-flash-lite": (0.10, 0.40),

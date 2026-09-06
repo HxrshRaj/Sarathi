@@ -105,8 +105,9 @@ class GeminiProvider(LLMProvider):
 
     @retry(
         retry=retry_if_exception(_retryable),
-        stop=stop_after_attempt(3),
-        wait=wait_exponential(multiplier=1, min=1, max=20),
+        stop=stop_after_attempt(5),
+        # free-tier 429s ask for ~20-30s backoff
+        wait=wait_exponential(multiplier=2, min=2, max=45),
         reraise=True,
     )
     async def complete(

@@ -48,8 +48,8 @@ class Settings(BaseSettings):
     llm_provider: Literal["gemini", "anthropic", "fake"] = "gemini"
     gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    llm_default_model: str = "gemini-2.5-pro"
-    llm_judge_model: str = "gemini-2.5-flash"
+    llm_default_model: str = "gemini-3.5-flash"
+    llm_judge_model: str = "gemini-3.5-flash-lite"
 
     # ── embeddings ───────────────────────────────────────────────────────────
     embedding_provider: Literal["gemini", "fastembed", "voyage", "hash"] = "gemini"
