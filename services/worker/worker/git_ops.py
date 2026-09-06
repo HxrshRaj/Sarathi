@@ -40,23 +40,27 @@ def _authed_url(clone_url: str, token: str | None) -> str:
 
 
 def clone_at(clone_url: str, dest: Path, *, ref: str, token: str | None = None) -> str:
-    """Shallow-clone `ref` into `dest`. Returns the resolved commit sha."""
+    """Clone `clone_url` into `dest` and check out `ref` (a branch or a commit sha).
+
+    Returns the resolved commit sha. Any token is used only for the initial clone
+    and immediately scrubbed from the stored remote.
+    """
     dest.parent.mkdir(parents=True, exist_ok=True)
     _run(["clone", "--filter=blob:none", "--no-checkout", _authed_url(clone_url, token), str(dest)])
     _run(["remote", "set-url", "origin", clone_url], cwd=dest)  # scrub token
-    _run(["fetch", "--depth", "1", "origin", ref], cwd=dest) if token is None else _run(
-        [
-            "-c",
-            f"http.extraheader=AUTHORIZATION: bearer {token}",
-            "fetch",
-            "--depth",
-            "1",
-            "origin",
-            ref,
-        ],
-        cwd=dest,
+
+    # A full-ish clone already has every branch + (usually) the wanted commit.
+    try:
+        _run(["checkout", "--detach", ref], cwd=dest)
+        return _run(["rev-parse", "HEAD"], cwd=dest)
+    except GitError:
+        pass
+
+    fetch_prefix = (
+        [] if token is None else ["-c", f"http.extraheader=AUTHORIZATION: bearer {token}"]
     )
-    _run(["checkout", "FETCH_HEAD"], cwd=dest)
+    _run([*fetch_prefix, "fetch", "origin", ref], cwd=dest)
+    _run(["checkout", "--detach", "FETCH_HEAD"], cwd=dest)
     return _run(["rev-parse", "HEAD"], cwd=dest)
 
 
