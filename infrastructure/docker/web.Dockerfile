@@ -14,7 +14,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps/web/node_modules ./apps/web/node_modules
 COPY . .
 WORKDIR /app/apps/web
-ENV NEXT_TELEMETRY_DISABLED=1 BUILD_STANDALONE=1
+# next.config.mjs rewrites() is evaluated at build time for standalone output, so
+# the compose-network API host must be present now (compose also passes it at run).
+ENV NEXT_TELEMETRY_DISABLED=1 BUILD_STANDALONE=1 API_INTERNAL_BASE_URL=http://api:8000
 RUN pnpm run build
 
 FROM node:22-slim AS run

@@ -73,7 +73,8 @@ services:
       context: .
       dockerfile: infrastructure/docker/web.Dockerfile
     environment:
-      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      # The browser calls same-origin /api/* ; Next proxies it to the API service
+      # (see next.config.mjs rewrites, baked at build time in web.Dockerfile).
       API_INTERNAL_BASE_URL: http://api:8000
     depends_on:
       api: { condition: service_started }
