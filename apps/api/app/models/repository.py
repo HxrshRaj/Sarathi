@@ -6,7 +6,6 @@ from datetime import datetime
 from sqlalchemy import (
     BigInteger,
     Boolean,
-    Enum,
     ForeignKey,
     Integer,
     String,
@@ -16,7 +15,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import IndexStatus
 
 
@@ -52,7 +51,7 @@ class RepositoryVersion(Base, PKMixin, TimestampMixin):
     branch: Mapped[str] = mapped_column(String(255))
     commit_sha: Mapped[str] = mapped_column(String(40))
     status: Mapped[IndexStatus] = mapped_column(
-        Enum(IndexStatus, name="index_status"), default=IndexStatus.PENDING
+        pg_enum(IndexStatus, name="index_status"), default=IndexStatus.PENDING
     )
     file_count: Mapped[int] = mapped_column(Integer, default=0)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)

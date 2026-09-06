@@ -57,7 +57,7 @@
 | Postgres is the single source of truth | Every run is fully reconstructable from rows. Redis is disposable. |
 | pgvector, not a dedicated vector DB | One datastore for local dev. `VectorStore` interface allows swapping later. |
 | Docker-per-execution sandbox | Real isolation boundary; industry-recognisable; disposable. |
-| Provider abstraction (`LLMProvider`) | Anthropic Claude is the default impl; adding OpenAI/others is one class. |
+| Provider abstraction (`LLMProvider`) | Gemini is the default impl; Anthropic + a Fake provider ship too; adding another is one class. |
 
 ## 2. Components
 
@@ -142,7 +142,7 @@ No level grants host shell, socket access, or secret exfiltration.
 - **API**: Python 3.11, FastAPI, Pydantic v2, SQLAlchemy 2 async, asyncpg, Alembic.
 - **Worker**: Celery 5 + Redis broker/result; Docker SDK for Python.
 - **Data**: PostgreSQL 16, `pgvector` extension; Redis 7.
-- **AI**: `anthropic` SDK; default model `claude-sonnet-5`; `LLMProvider` ABC.
+- **AI**: `google-genai` SDK; default model `gemini-2.5-pro` (judge `gemini-2.5-flash`); `LLMProvider` ABC with Anthropic + Fake alternatives.
 - **Retrieval**: `tree-sitter` for symbol extraction; pgvector cosine + Postgres
   full-text (`tsvector`) for keyword; reciprocal-rank fusion for hybrid.
 - **Security tooling**: `gitleaks`/`detect-secrets`, `bandit`, `semgrep`, `pip-audit`, `npm audit`.

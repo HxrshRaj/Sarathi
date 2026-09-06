@@ -1,8 +1,9 @@
 from pathlib import Path
 
+from pydantic import BaseModel
+
 from worker.tools.base import Tool, ToolRegistry, ToolResult
 from worker.tools.fs_tools import WorkspaceFS, build_fs_tools
-from pydantic import BaseModel
 
 
 class EchoArgs(BaseModel):

@@ -3,13 +3,13 @@ from __future__ import annotations
 import uuid
 
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import Enum, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.dialects.postgresql import TSVECTOR
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.config import get_settings
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import ChunkKind
 
 _EMBED_DIM = get_settings().embedding_dim
@@ -45,7 +45,7 @@ class CodeChunk(Base, PKMixin, TimestampMixin):
         PgUUID(as_uuid=True), ForeignKey("code_files.id", ondelete="CASCADE"), index=True
     )
     symbol: Mapped[str | None] = mapped_column(String(512))
-    kind: Mapped[ChunkKind] = mapped_column(Enum(ChunkKind, name="chunk_kind"))
+    kind: Mapped[ChunkKind] = mapped_column(pg_enum(ChunkKind, name="chunk_kind"))
     start_line: Mapped[int] = mapped_column(Integer)
     end_line: Mapped[int] = mapped_column(Integer)
     content: Mapped[str] = mapped_column(Text)

@@ -43,15 +43,18 @@ class Settings(BaseSettings):
     github_oauth_scopes: str = "repo,read:user"
 
     # ── llm ──────────────────────────────────────────────────────────────────
-    llm_provider: Literal["anthropic", "fake"] = "anthropic"
+    # `gemini` is the default provider; `anthropic` and `fake` remain available
+    # behind the same LLMProvider interface.
+    llm_provider: Literal["gemini", "anthropic", "fake"] = "gemini"
+    gemini_api_key: str = ""
     anthropic_api_key: str = ""
-    llm_default_model: str = "claude-sonnet-5"
-    llm_judge_model: str = "claude-sonnet-5"
+    llm_default_model: str = "gemini-2.5-pro"
+    llm_judge_model: str = "gemini-2.5-flash"
 
     # ── embeddings ───────────────────────────────────────────────────────────
-    embedding_provider: Literal["fastembed", "voyage", "hash"] = "fastembed"
-    embedding_model: str = "BAAI/bge-small-en-v1.5"
-    embedding_dim: int = 384
+    embedding_provider: Literal["gemini", "fastembed", "voyage", "hash"] = "gemini"
+    embedding_model: str = "text-embedding-004"
+    embedding_dim: int = 768
     voyage_api_key: str = ""
 
     # ── agent run limits ─────────────────────────────────────────────────────
@@ -107,6 +110,10 @@ class Settings(BaseSettings):
             problems.append("GITHUB_CLIENT_ID/SECRET are required in production")
         if self.llm_provider == "anthropic" and not self.anthropic_api_key:
             problems.append("ANTHROPIC_API_KEY is required when LLM_PROVIDER=anthropic")
+        if self.llm_provider == "gemini" and not self.gemini_api_key:
+            problems.append("GEMINI_API_KEY is required when LLM_PROVIDER=gemini")
+        if self.embedding_provider == "gemini" and not self.gemini_api_key:
+            problems.append("GEMINI_API_KEY is required when EMBEDDING_PROVIDER=gemini")
         if self.dev_auth_bypass:
             problems.append("DEV_AUTH_BYPASS must be false in production")
         return problems

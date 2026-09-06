@@ -19,7 +19,9 @@ from app.config import get_settings
 
 def _db_reachable() -> bool:
     try:
-        eng = sa.create_engine(get_settings().database_url_sync, connect_args={"connect_timeout": 3})
+        eng = sa.create_engine(
+            get_settings().database_url_sync, connect_args={"connect_timeout": 3}
+        )
         with eng.connect() as conn:
             conn.execute(sa.text("SELECT 1"))
         eng.dispose()
@@ -29,7 +31,9 @@ def _db_reachable() -> bool:
 
 
 DB_AVAILABLE = _db_reachable()
-requires_db = pytest.mark.skipif(not DB_AVAILABLE, reason="Postgres (DATABASE_URL_SYNC) not reachable")
+requires_db = pytest.mark.skipif(
+    not DB_AVAILABLE, reason="Postgres (DATABASE_URL_SYNC) not reachable"
+)
 
 
 @pytest.fixture(scope="session", autouse=True)

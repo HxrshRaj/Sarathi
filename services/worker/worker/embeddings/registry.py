@@ -23,4 +23,8 @@ def get_embedder(provider: str | None = None) -> EmbeddingProvider:
         from worker.embeddings.voyage_provider import VoyageProvider
 
         return VoyageProvider()
+    if name == "gemini":
+        from worker.embeddings.gemini_provider import GeminiEmbeddingProvider
+
+        return GeminiEmbeddingProvider()
     raise ValueError(f"Unknown embedding provider: {name}")

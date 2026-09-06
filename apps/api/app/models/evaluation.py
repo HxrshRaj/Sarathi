@@ -3,12 +3,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, Numeric, String
+from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import EvaluationStatus
 
 
@@ -21,7 +21,7 @@ class Evaluation(Base, PKMixin, TimestampMixin):
     prompt_bundle: Mapped[str] = mapped_column(String(128), default="active")
     comparison_group: Mapped[str | None] = mapped_column(String(128), index=True)
     status: Mapped[EvaluationStatus] = mapped_column(
-        Enum(EvaluationStatus, name="evaluation_status"), default=EvaluationStatus.QUEUED
+        pg_enum(EvaluationStatus, name="evaluation_status"), default=EvaluationStatus.QUEUED
     )
     started_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]

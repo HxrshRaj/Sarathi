@@ -27,7 +27,7 @@ def test_redacts_connection_string_password():
 
 
 def test_scan_reports_line_numbers():
-    text = "clean line\nGITHUB_TOKEN = \"ghp_0123456789abcdefghijklmnopqrstuvwx12\"\n"
+    text = 'clean line\nGITHUB_TOKEN = "ghp_0123456789abcdefghijklmnopqrstuvwx12"\n'
     hits = scan(text)
     assert hits and hits[0].line == 2
 

@@ -5,7 +5,6 @@ from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
-    Enum,
     ForeignKey,
     Integer,
     Numeric,
@@ -17,7 +16,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import (
     AgentName,
     AutonomyLevel,
@@ -38,9 +37,9 @@ class AgentRun(Base, PKMixin, TimestampMixin):
         PgUUID(as_uuid=True), ForeignKey("tasks.id", ondelete="CASCADE"), index=True
     )
     status: Mapped[RunStatus] = mapped_column(
-        Enum(RunStatus, name="run_status"), default=RunStatus.RUNNING, index=True
+        pg_enum(RunStatus, name="run_status"), default=RunStatus.RUNNING, index=True
     )
-    autonomy: Mapped[AutonomyLevel] = mapped_column(Enum(AutonomyLevel, name="autonomy_level"))
+    autonomy: Mapped[AutonomyLevel] = mapped_column(pg_enum(AutonomyLevel, name="autonomy_level"))
     model: Mapped[str] = mapped_column(String(128))
     workspace_path: Mapped[str | None] = mapped_column(Text)
     correlation_id: Mapped[str] = mapped_column(String(64), index=True)
@@ -71,9 +70,9 @@ class AgentStep(Base, PKMixin, TimestampMixin):
         PgUUID(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
     )
     seq: Mapped[int] = mapped_column(Integer)
-    agent: Mapped[AgentName] = mapped_column(Enum(AgentName, name="agent_name"))
+    agent: Mapped[AgentName] = mapped_column(pg_enum(AgentName, name="agent_name"))
     status: Mapped[StepStatus] = mapped_column(
-        Enum(StepStatus, name="step_status"), default=StepStatus.RUNNING
+        pg_enum(StepStatus, name="step_status"), default=StepStatus.RUNNING
     )
     started_at: Mapped[datetime | None]
     finished_at: Mapped[datetime | None]
@@ -112,7 +111,7 @@ class FileChange(Base, PKMixin, TimestampMixin):
         PgUUID(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
     )
     path: Mapped[str] = mapped_column(Text)
-    change_type: Mapped[ChangeType] = mapped_column(Enum(ChangeType, name="change_type"))
+    change_type: Mapped[ChangeType] = mapped_column(pg_enum(ChangeType, name="change_type"))
     before_content: Mapped[str | None] = mapped_column(Text)
     after_content: Mapped[str | None] = mapped_column(Text)
     diff: Mapped[str] = mapped_column(Text, default="")
@@ -147,8 +146,8 @@ class SecurityFinding(Base, PKMixin, TimestampMixin):
     agent_run_id: Mapped[uuid.UUID] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("agent_runs.id", ondelete="CASCADE"), index=True
     )
-    source: Mapped[SecuritySource] = mapped_column(Enum(SecuritySource, name="security_source"))
-    severity: Mapped[Severity] = mapped_column(Enum(Severity, name="severity"))
+    source: Mapped[SecuritySource] = mapped_column(pg_enum(SecuritySource, name="security_source"))
+    severity: Mapped[Severity] = mapped_column(pg_enum(Severity, name="severity"))
     rule_id: Mapped[str | None] = mapped_column(String(128))
     path: Mapped[str | None] = mapped_column(Text)
     line: Mapped[int | None] = mapped_column(Integer)

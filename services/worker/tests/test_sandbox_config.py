@@ -27,15 +27,15 @@ def test_runner_run_uses_hardening_flags():
         "mem_limit=",
         "memswap_limit=",
         'user="65532:65532"',
-        'tmpfs={',
+        "tmpfs={",
         "remove(force=True)",
     ):
         assert needle in src, needle
 
 
 def test_no_shell_tool_exists():
-    import worker.tools.fs_tools as fs
     import worker.tools.exec_tools as ex
+    import worker.tools.fs_tools as fs
 
     names = []
     for mod in (fs, ex):

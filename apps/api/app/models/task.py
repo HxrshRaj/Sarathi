@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Boolean, Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import AutonomyLevel, TaskStatus
 
 
@@ -26,13 +26,13 @@ class Task(Base, PKMixin, TimestampMixin):
     title: Mapped[str] = mapped_column(String(512))
     # The engineering request. UNTRUSTED as instructions to the agent (see THREAT_MODEL T1).
     description: Mapped[str] = mapped_column(Text)
-    autonomy: Mapped[AutonomyLevel] = mapped_column(Enum(AutonomyLevel, name="autonomy_level"))
+    autonomy: Mapped[AutonomyLevel] = mapped_column(pg_enum(AutonomyLevel, name="autonomy_level"))
     model: Mapped[str] = mapped_column(String(128))
     max_iterations: Mapped[int] = mapped_column(Integer, default=3)
     run_evaluation: Mapped[bool] = mapped_column(Boolean, default=False)
     auto_create_pr: Mapped[bool] = mapped_column(Boolean, default=False)
     status: Mapped[TaskStatus] = mapped_column(
-        Enum(TaskStatus, name="task_status"), default=TaskStatus.DRAFT, index=True
+        pg_enum(TaskStatus, name="task_status"), default=TaskStatus.DRAFT, index=True
     )
 
     runs: Mapped[list[AgentRun]] = relationship(  # noqa: F821

@@ -26,10 +26,10 @@ through an allowlisted, validated, sandboxed, audited path.
 | **API** | FastAPI + async SQLAlchemy 2 + Alembic. GitHub OAuth + server sessions + CSRF, row‑level authz (cross‑tenant → 404), typed error envelope, correlation IDs, Redis token‑bucket rate limits, Prometheus metrics. |
 | **Worker** | Celery. Task orchestrator state machine, cooperative cancel, per‑run budgets (tokens / cost / iterations / runtime). |
 | **Agents** | RepoAnalyzer · Planner · Retriever · Coder · Tester · Debugger (repair loop, capped) · Security · Reviewer. Each returns a validated Pydantic model via a forced tool, with validate → repair → typed‑fail. |
-| **LLM layer** | `LLMProvider` ABC. `AnthropicProvider` (default, `claude-sonnet-5`) + `FakeProvider` (deterministic, offline, for CI/dev/demo). Token & cost tracking, retries, timeouts. |
+| **LLM layer** | `LLMProvider` ABC. `GeminiProvider` (default, `gemini-2.5-pro`, `google-genai`) + `AnthropicProvider` + `FakeProvider` (deterministic, offline, for CI/dev/demo). Pydantic→Gemini schema converter for function calling. Token & cost tracking, retries, timeouts. |
 | **Code intelligence** | Clone → language detection → structure‑aware chunking (`ast` for Python, brace‑scan for JS/TS, line windows fallback) → secret redaction → embeddings → pgvector. Hybrid retrieval: dense (pgvector cosine) + lexical (`tsvector`) + symbol (trigram), fused with Reciprocal Rank Fusion, packed to a token budget. |
-| **Embeddings** | `EmbeddingProvider` ABC — `fastembed` (local, default), `voyage` (hosted), `hash` (deterministic, offline). |
-| **Sandbox** | Ephemeral Docker container per execution: `--network none`, non‑root, `--cap-drop ALL`, `no-new-privileges`, read‑only rootfs, tmpfs workspace, memory / CPU / PID limits, wall‑clock kill, forced cleanup, **no docker socket, no secrets, no host mounts**. |
+| **Embeddings** | `EmbeddingProvider` ABC — `gemini` (`text-embedding-004`, default), `fastembed` (local), `voyage` (hosted), `hash` (deterministic, offline). |
+| **Sandbox** | Ephemeral Docker container per execution: `--network none`, non‑root, `--cap-drop ALL`, `no-new-privileges`, tmpfs `/tmp`, fsize/nofile rlimits, memory / CPU / PID limits, wall‑clock kill, forced cleanup, **no docker socket, no secrets, no host mounts**. (Read‑only rootfs is deferred — Docker rejects `put_archive` into it; restored by the gVisor/Kata upgrade path.) |
 | **Security** | In‑process secret scanner/redactor + `bandit` / `pip-audit` (sandboxed) + AI review over the diff. Deterministic findings are never suppressed by the AI pass. |
 | **Evaluation** | Benchmark format + runner that executes the **full** orchestrator per benchmark, then grades with deterministic gates + `invariants.yaml` + an advisory LLM judge. Aggregates rates; flags **regressions** vs a baseline; model/prompt comparison groups. Seed set + sample repos included. |
 | **Observability** | Every run is replayable from `agent_steps` + `tool_calls` + `file_changes` + `test_runs` + `security_findings` + `model_usage`. Structured JSON logs with a secret denylist. |
@@ -44,13 +44,13 @@ Design docs: [architecture](docs/ARCHITECTURE.md) · [decisions](docs/DECISIONS.
 
 ## Quick start
 
-Prerequisites: Docker (with Compose) running, and optionally an `ANTHROPIC_API_KEY`
-and a GitHub OAuth app.
+Prerequisites: Docker (with Compose) running, a `GEMINI_API_KEY` for real agent
+runs, and a GitHub OAuth app to connect real repos / open PRs.
 
 ```bash
 cp .env.example .env
-# minimum to boot with no external accounts: leave LLM_PROVIDER=anthropic but note
-# agent runs need a key; for an offline demo set LLM_PROVIDER=fake and EMBEDDING_PROVIDER=hash
+# set GEMINI_API_KEY for real runs; OR for a fully offline demo set
+#   LLM_PROVIDER=fake  and  EMBEDDING_PROVIDER=hash
 python -m app.scripts.gen_key   # -> paste into ENCRYPTION_KEY  (run inside apps/api once deps are installed)
 
 docker compose --profile sandbox-images build   # build the sandbox toolchain images
@@ -73,7 +73,8 @@ EMBEDDING_PROVIDER=hash
 
 The `FakeProvider` returns deterministic, schema‑valid structured outputs so the
 whole pipeline runs and the UI is fully explorable. It does **not** pretend to
-reason — it is a labelled test double. Real runs use Anthropic when a key is set.
+reason — it is a labelled test double. Real runs use Gemini when `GEMINI_API_KEY`
+is set (or Anthropic with `LLM_PROVIDER=anthropic`).
 
 ---
 
@@ -119,10 +120,10 @@ CI runs all of the above against a real `pgvector` service plus `bandit`,
 # from the API
 curl -X POST localhost:8000/api/evaluations/run \
   -H 'content-type: application/json' \
-  -d '{"benchmark_set":"v1","model":"claude-sonnet-5"}'
+  -d '{"benchmark_set":"v1","model":"gemini-2.5-pro"}'
 
 # or directly
-docker compose run --rm worker python -m worker.evaluation.cli v1 --model claude-sonnet-5
+docker compose run --rm worker python -m worker.evaluation.cli v1 --model gemini-2.5-pro
 ```
 
 Each benchmark becomes a real local git repo; the full orchestrator runs against

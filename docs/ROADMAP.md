@@ -23,13 +23,13 @@ Phased. Each phase ends green: tests pass, stack boots, docs updated, one commit
 ## What "done" excludes on purpose (documented, not faked)
 - Managed vector DB integration (interface only; pgvector is the impl).
 - gVisor/Kata sandbox backend (interface + docs; Docker is the impl).
-- Multi-provider LLM beyond Anthropic + Fake (interface ready).
+- Multi-provider LLM beyond Gemini + Anthropic + Fake (interface ready).
 - tree-sitter native grammars (ast + heuristic chunker is the impl; hook present).
 Anything not implemented is marked `NotImplementedError` with a docstring, never
 mocked to look real.
 
 ## Dependencies to provision for full functionality
-- `ANTHROPIC_API_KEY` — real agent runs (Fake provider works offline for dev/CI/demo).
+- `GEMINI_API_KEY` — real agent runs + embeddings (Fake/hash providers work offline for dev/CI/demo).
 - GitHub OAuth app (`GITHUB_CLIENT_ID/SECRET`) — repo connect + PRs.
 - Docker daemon reachable from the worker — sandbox execution.
 - `ENCRYPTION_KEY` (Fernet) — OAuth token at rest.

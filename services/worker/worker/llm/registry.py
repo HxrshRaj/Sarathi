@@ -18,4 +18,8 @@ def get_llm(provider: str | None = None) -> LLMProvider:
         from worker.llm.anthropic_provider import AnthropicProvider
 
         return AnthropicProvider()
+    if name == "gemini":
+        from worker.llm.gemini_provider import GeminiProvider
+
+        return GeminiProvider()
     raise ValueError(f"Unknown LLM provider: {name}")

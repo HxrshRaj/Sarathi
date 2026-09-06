@@ -35,10 +35,14 @@ async def ready() -> Health:
     except Exception as exc:  # noqa: BLE001
         checks["redis"] = f"error: {type(exc).__name__}"
 
+    _llm_key = {
+        "fake": True,
+        "gemini": bool(settings.gemini_api_key),
+        "anthropic": bool(settings.anthropic_api_key),
+    }.get(settings.llm_provider, False)
     checks["llm_provider"] = settings.llm_provider
-    checks["llm_key"] = (
-        "present" if (settings.llm_provider == "fake" or settings.anthropic_api_key) else "missing"
-    )
+    checks["llm_key"] = "present" if _llm_key else "missing"
+    checks["embedding_provider"] = settings.embedding_provider
     checks["github_oauth"] = (
         "configured" if settings.github_client_id and settings.github_client_secret else "unset"
     )

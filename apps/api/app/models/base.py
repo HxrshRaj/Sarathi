@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
+import enum
 import uuid
 from datetime import datetime
 
-from sqlalchemy import DateTime, MetaData, func, text
+from sqlalchemy import DateTime, Enum, MetaData, func, text
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 
@@ -21,6 +22,19 @@ NAMING_CONVENTION = {
 
 class Base(DeclarativeBase):
     metadata = MetaData(naming_convention=NAMING_CONVENTION)
+
+
+def pg_enum(py_enum: type[enum.Enum], *, name: str) -> Enum:
+    """Postgres native ENUM whose labels are the enum *values* (lowercase
+    StrEnum values), not the member names. Keeps ORM writes, raw SQL, and the
+    JSON the API emits all on the same strings.
+    """
+    return Enum(
+        py_enum,
+        name=name,
+        native_enum=True,
+        values_callable=lambda e: [str(m.value) for m in e],
+    )
 
 
 class PKMixin:

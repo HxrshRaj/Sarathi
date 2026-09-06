@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import uuid
 
-from sqlalchemy import Enum, ForeignKey, Integer, String, Text
+from sqlalchemy import ForeignKey, Integer, String, Text
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import PRState
 
 
@@ -25,5 +25,5 @@ class PullRequest(Base, PKMixin, TimestampMixin):
     github_pr_url: Mapped[str | None] = mapped_column(Text)
     title: Mapped[str] = mapped_column(Text)
     body: Mapped[str] = mapped_column(Text)
-    state: Mapped[PRState] = mapped_column(Enum(PRState, name="pr_state"), default=PRState.DRAFT)
+    state: Mapped[PRState] = mapped_column(pg_enum(PRState, name="pr_state"), default=PRState.DRAFT)
     commit_sha: Mapped[str | None] = mapped_column(String(40))

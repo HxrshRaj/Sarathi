@@ -2,9 +2,6 @@ from __future__ import annotations
 
 import uuid
 
-import pytest
-from sqlalchemy import select
-
 from app.db import AsyncSessionLocal
 from app.models.repository import Repository
 from app.models.user import User
@@ -28,8 +25,12 @@ async def _other_users_repo() -> uuid.UUID:
         db.add(other)
         await db.flush()
         repo = Repository(
-            user_id=other.id, github_repo_id=42, full_name="mallory/secret",
-            default_branch="main", private=True, clone_url="https://x/y.git",
+            user_id=other.id,
+            github_repo_id=42,
+            full_name="mallory/secret",
+            default_branch="main",
+            private=True,
+            clone_url="https://x/y.git",
         )
         db.add(repo)
         await db.commit()

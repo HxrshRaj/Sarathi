@@ -16,7 +16,9 @@ def test_run_event_fields_match_ts_mirror():
     assert block, "RUN_EVENT_FIELDS not found in events.ts"
     ts_fields = set(re.findall(r'"([a-z_]+)"', block.group(1)))
     py_fields = set(RunEvent.model_fields.keys())
-    assert ts_fields == py_fields, f"drift: py-only={py_fields - ts_fields} ts-only={ts_fields - py_fields}"
+    assert (
+        ts_fields == py_fields
+    ), f"drift: py-only={py_fields - ts_fields} ts-only={ts_fields - py_fields}"
 
 
 def test_event_types_align():

@@ -6,7 +6,7 @@ requires-python = ">=3.11"
 dependencies = [
     "fastapi==0.115.6",
     "uvicorn[standard]==0.34.0",
-    "pydantic==2.10.4",
+    "pydantic==2.13.5",
     "pydantic-settings==2.7.0",
     "sqlalchemy[asyncio]==2.0.36",
     "asyncpg==0.30.0",
@@ -66,7 +66,7 @@ ignore = [
 
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S", "B"]
-"app/alembic/**" = ["E501"]
+"app/alembic/**" = ["E501", "S608"]  # migrations legitimately assemble DDL/DML strings
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"

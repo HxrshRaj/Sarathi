@@ -79,3 +79,18 @@ such (no untrusted input executed in the worker itself; it only *orchestrates*).
 ## ADR-009 — Attribution
 Commits use the repository owner's git identity (`Harsh Raj` / GitHub-associated
 email). See project brief §49. This is set via repo-local `git config` at init.
+
+## ADR-010 — Default LLM + embeddings provider is Google Gemini
+**Decision.** `GeminiProvider` (LLM, `google-genai` SDK) and
+`GeminiEmbeddingProvider` (`text-embedding-004`, 768-dim) are the defaults.
+`AnthropicProvider` and `FakeProvider` (LLM) plus `fastembed` / `voyage` / `hash`
+(embeddings) stay as alternatives behind the unchanged `LLMProvider` /
+`EmbeddingProvider` interfaces — this is exactly the swap the abstraction was
+built for.
+**Consequences.** Gemini function-calling backs `structured()` and the agent tool
+loop. Pydantic-generated JSON Schemas are run through
+`worker/llm/schema_gemini.py` (inline `$ref`, `anyOf`-null → `nullable`, drop
+keys Gemini rejects) before becoming `FunctionDeclaration.parameters`.
+`EMBEDDING_DIM` moves 384 → 768; migration `0002` re-types `code_chunks.embedding`
+and resets index status (embeddings are a rebuildable cache). `pydantic` pinned
+up to `2.13.5` for `google-genai` compatibility.

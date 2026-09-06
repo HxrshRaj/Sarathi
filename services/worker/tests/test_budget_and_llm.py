@@ -10,7 +10,13 @@ from worker.runtime.schemas import Plan, RepoAnalysis
 
 
 def _budget(**kw) -> RunBudget:
-    base = dict(max_tokens=1000, max_cost_usd=1.0, max_iterations=3, max_runtime_s=60, model="fake")
+    base = {
+        "max_tokens": 1000,
+        "max_cost_usd": 1.0,
+        "max_iterations": 3,
+        "max_runtime_s": 60,
+        "model": "fake",
+    }
     base.update(kw)
     return RunBudget(**base)
 
@@ -70,9 +76,11 @@ def test_fake_provider_agentic_turn_has_no_tool_calls():
     provider = FakeProvider()
     res = asyncio.run(
         provider.complete(
-            model="fake", system="s",
+            model="fake",
+            system="s",
             messages=[LLMMessage(role="user", content="do work")],
-            tools=[], tool_choice="auto",
+            tools=[],
+            tool_choice="auto",
         )
     )
     assert res.tool_calls == []

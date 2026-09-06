@@ -3,12 +3,12 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 
-from sqlalchemy import BigInteger, Enum, ForeignKey, LargeBinary, Numeric, String, Text
+from sqlalchemy import BigInteger, ForeignKey, LargeBinary, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin
+from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
 from app.models.enums import AutonomyLevel
 
 
@@ -20,7 +20,7 @@ class User(Base, PKMixin, TimestampMixin):
     name: Mapped[str | None] = mapped_column(String(255))
     avatar_url: Mapped[str | None] = mapped_column(Text)
     default_autonomy: Mapped[AutonomyLevel] = mapped_column(
-        Enum(AutonomyLevel, name="autonomy_level"), default=AutonomyLevel.SUPERVISED
+        pg_enum(AutonomyLevel, name="autonomy_level"), default=AutonomyLevel.SUPERVISED
     )
     monthly_cost_cap_usd: Mapped[float | None] = mapped_column(Numeric(10, 4))
 
