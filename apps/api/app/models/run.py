@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     Boolean,
@@ -16,7 +15,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
+from app.models.base import Base, PKMixin, TimestampMixin, TZDateTime, pg_enum
 from app.models.enums import (
     AgentName,
     AutonomyLevel,
@@ -43,8 +42,8 @@ class AgentRun(Base, PKMixin, TimestampMixin):
     model: Mapped[str] = mapped_column(String(128))
     workspace_path: Mapped[str | None] = mapped_column(Text)
     correlation_id: Mapped[str] = mapped_column(String(64), index=True)
-    started_at: Mapped[datetime | None]
-    finished_at: Mapped[datetime | None]
+    started_at: Mapped[TZDateTime | None]
+    finished_at: Mapped[TZDateTime | None]
     error_category: Mapped[str | None] = mapped_column(String(64))
     error_message: Mapped[str | None] = mapped_column(Text)
     total_input_tokens: Mapped[int] = mapped_column(Integer, default=0)
@@ -74,8 +73,8 @@ class AgentStep(Base, PKMixin, TimestampMixin):
     status: Mapped[StepStatus] = mapped_column(
         pg_enum(StepStatus, name="step_status"), default=StepStatus.RUNNING
     )
-    started_at: Mapped[datetime | None]
-    finished_at: Mapped[datetime | None]
+    started_at: Mapped[TZDateTime | None]
+    finished_at: Mapped[TZDateTime | None]
     input_json: Mapped[dict] = mapped_column(JSONB, default=dict)
     output_json: Mapped[dict | None] = mapped_column(JSONB)
     error: Mapped[str | None] = mapped_column(Text)

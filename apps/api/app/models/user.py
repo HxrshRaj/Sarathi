@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 
 from sqlalchemy import BigInteger, ForeignKey, LargeBinary, Numeric, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY, INET
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
+from app.models.base import Base, PKMixin, TimestampMixin, TZDateTime, pg_enum
 from app.models.enums import AutonomyLevel
 
 
@@ -39,7 +38,7 @@ class GithubIdentity(Base, PKMixin, TimestampMixin):
     )
     access_token_encrypted: Mapped[bytes] = mapped_column(LargeBinary)
     scopes: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
-    token_expires_at: Mapped[datetime | None]
+    token_expires_at: Mapped[TZDateTime | None]
 
     user: Mapped[User] = relationship(back_populates="identity")
 
@@ -51,7 +50,7 @@ class Session(Base, TimestampMixin):
     user_id: Mapped[uuid.UUID] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("users.id", ondelete="CASCADE"), index=True
     )
-    expires_at: Mapped[datetime]
-    revoked_at: Mapped[datetime | None]
+    expires_at: Mapped[TZDateTime]
+    revoked_at: Mapped[TZDateTime | None]
     user_agent: Mapped[str | None] = mapped_column(Text)
     ip: Mapped[str | None] = mapped_column(INET)

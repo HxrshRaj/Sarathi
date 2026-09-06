@@ -5,10 +5,15 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import Annotated
 
 from sqlalchemy import DateTime, Enum, MetaData, func, text
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
+
+# Every timestamp column is `timestamptz`. App code always writes tz-aware UTC
+# datetimes; asyncpg rejects those against a naive column.
+TZDateTime = Annotated[datetime, mapped_column(DateTime(timezone=True))]
 
 # Predictable constraint names -> clean Alembic autogenerate diffs.
 NAMING_CONVENTION = {

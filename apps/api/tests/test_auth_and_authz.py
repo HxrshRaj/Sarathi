@@ -19,6 +19,24 @@ async def test_dev_bypass_me(client):
     assert body["csrf_token"]
 
 
+async def test_create_session_persists_tzaware_expiry():
+    """Guards the OAuth-callback path: session columns must be timestamptz so
+    asyncpg accepts the tz-aware UTC datetimes the app writes."""
+    from app.services.sessions import create_session, resolve_session
+
+    async with AsyncSessionLocal() as db:
+        user = User(github_user_id=4242, login="octocat")
+        db.add(user)
+        await db.flush()
+        session = await create_session(db, user, user_agent="pytest", ip="10.0.0.1")
+        await db.commit()
+        sid = session.id
+
+    async with AsyncSessionLocal() as db:
+        resolved = await resolve_session(db, sid)
+        assert resolved is not None and resolved.login == "octocat"
+
+
 async def _other_users_repo() -> uuid.UUID:
     async with AsyncSessionLocal() as db:
         other = User(github_user_id=999, login="mallory")

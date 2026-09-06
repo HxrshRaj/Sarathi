@@ -1,14 +1,13 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 
 from sqlalchemy import Boolean, ForeignKey, Integer, Numeric, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
+from app.models.base import Base, PKMixin, TimestampMixin, TZDateTime, pg_enum
 from app.models.enums import EvaluationStatus
 
 
@@ -23,8 +22,8 @@ class Evaluation(Base, PKMixin, TimestampMixin):
     status: Mapped[EvaluationStatus] = mapped_column(
         pg_enum(EvaluationStatus, name="evaluation_status"), default=EvaluationStatus.QUEUED
     )
-    started_at: Mapped[datetime | None]
-    finished_at: Mapped[datetime | None]
+    started_at: Mapped[TZDateTime | None]
+    finished_at: Mapped[TZDateTime | None]
     baseline_evaluation_id: Mapped[uuid.UUID | None] = mapped_column(
         PgUUID(as_uuid=True), ForeignKey("evaluations.id", ondelete="SET NULL")
     )

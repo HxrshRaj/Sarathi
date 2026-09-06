@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
 
 from sqlalchemy import (
     BigInteger,
@@ -15,7 +14,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import UUID as PgUUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
-from app.models.base import Base, PKMixin, TimestampMixin, pg_enum
+from app.models.base import Base, PKMixin, TimestampMixin, TZDateTime, pg_enum
 from app.models.enums import IndexStatus
 
 
@@ -56,6 +55,6 @@ class RepositoryVersion(Base, PKMixin, TimestampMixin):
     file_count: Mapped[int] = mapped_column(Integer, default=0)
     chunk_count: Mapped[int] = mapped_column(Integer, default=0)
     index_error: Mapped[str | None] = mapped_column(Text)
-    indexed_at: Mapped[datetime | None]
+    indexed_at: Mapped[TZDateTime | None]
 
     repository: Mapped[Repository] = relationship(back_populates="versions")
