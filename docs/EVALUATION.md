@@ -81,7 +81,7 @@ A +4% task success that comes with +4% security failures is reported as a
 
 ## Model / prompt comparison
 
-`runner.py --matrix models=claude-sonnet-5,claude-opus-5 prompts=v1,v2` runs the
+`runner.py --matrix models=gemini-3.5-flash,gemini-3.1-pro-preview prompts=v1,v2` runs the
 grid and stores each cell as its own `evaluations` row with a shared
 `comparison_group`. The Evaluations dashboard renders the grid: success, latency,
 cost, security per cell, over time.

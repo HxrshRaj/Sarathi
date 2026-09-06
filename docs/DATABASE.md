@@ -58,7 +58,7 @@ an indexed snapshot of a repo at a commit.
 | start_line / end_line | int | |
 | content | text | redacted of secrets before store |
 | token_count | int | |
-| embedding | vector(1536) | model-dependent dim; see prompts config |
+| embedding | vector(768) | dim = EMBEDDING_DIM (gemini-embedding-001 truncated); migration 0002 |
 | tsv | tsvector | generated from `content` + `symbol` |
 
 Indexes: `ivfflat (embedding vector_cosine_ops)`, `gin (tsv)`,
@@ -76,7 +76,7 @@ Indexes: `ivfflat (embedding vector_cosine_ops)`, `gin (tsv)`,
 | title | text | |
 | description | text | the engineering request (UNTRUSTED as instructions) |
 | autonomy | autonomy_level | |
-| model | text | e.g. `claude-sonnet-5` |
+| model | text | e.g. `gemini-3.5-flash` |
 | max_iterations | int | default 3 |
 | run_evaluation | bool | |
 | auto_create_pr | bool | |

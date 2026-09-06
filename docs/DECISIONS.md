@@ -82,7 +82,7 @@ email). See project brief §49. This is set via repo-local `git config` at init.
 
 ## ADR-010 — Default LLM + embeddings provider is Google Gemini
 **Decision.** `GeminiProvider` (LLM, `google-genai` SDK) and
-`GeminiEmbeddingProvider` (`text-embedding-004`, 768-dim) are the defaults.
+`GeminiEmbeddingProvider` (`gemini-embedding-001` truncated to 768-dim) are the defaults.
 `AnthropicProvider` and `FakeProvider` (LLM) plus `fastembed` / `voyage` / `hash`
 (embeddings) stay as alternatives behind the unchanged `LLMProvider` /
 `EmbeddingProvider` interfaces — this is exactly the swap the abstraction was

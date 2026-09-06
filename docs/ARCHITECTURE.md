@@ -10,7 +10,7 @@
                     ┌──────────────────────────┐
    Browser  ───────▶│  apps/web  (Next.js 15)   │
                     │  React / TS / Tailwind    │
-                    │  Monaco diff viewer       │
+                    │  unified diff viewer       │
                     └───────────┬──────────────┘
                                 │  HTTPS (cookie session + CSRF)
                     ┌───────────▼──────────────┐
@@ -64,7 +64,7 @@
 ### apps/web
 Next.js App Router. Pages: Dashboard, Repositories, Tasks, Task Run (live), Diff,
 Evaluations, Runs, Pull Requests, Settings. Talks only to `apps/api`. No secrets.
-Monaco for the diff viewer. SSE client for the live run view.
+A hand-rolled unified-diff viewer (Monaco was dropped — CDN-gated, and read-only review needs less). SSE client for the live run view.
 
 ### apps/api
 FastAPI + Pydantic v2 + SQLAlchemy 2 (async) + Alembic.
@@ -93,7 +93,7 @@ caps, structured result. No `shell` tool. Execution tools (`run_tests`,
 
 ### Sandbox
 `services/worker/sandbox/` launches a throwaway container per execution:
-`--network none`, non-root UID, read-only base + `tmpfs` workspace, `--pids-limit`,
+`--network none`, non-root UID, writable ephemeral layer + `tmpfs` /tmp (read-only rootfs deferred; see SANDBOX.md), `--pids-limit`,
 `--memory`, `--cpus`, wall-clock timeout, `--cap-drop ALL`, no bind mounts except
 the run workspace mounted read-write, **no docker socket**. Container is force-
 removed on exit. See [SANDBOX.md](SANDBOX.md).
@@ -138,11 +138,11 @@ No level grants host shell, socket access, or secret exfiltration.
 
 ## 6. Tech stack (chosen)
 
-- **Web**: Next.js 15, React 19, TypeScript, Tailwind, shadcn/ui, Monaco, TanStack Query.
+- **Web**: Next.js 15, React 19, TypeScript, Tailwind, TanStack Query, hand-rolled diff view.
 - **API**: Python 3.11, FastAPI, Pydantic v2, SQLAlchemy 2 async, asyncpg, Alembic.
 - **Worker**: Celery 5 + Redis broker/result; Docker SDK for Python.
 - **Data**: PostgreSQL 16, `pgvector` extension; Redis 7.
-- **AI**: `google-genai` SDK; default model `gemini-2.5-pro` (judge `gemini-2.5-flash`); `LLMProvider` ABC with Anthropic + Fake alternatives.
+- **AI**: `google-genai` SDK; default model `gemini-3.5-flash` (judge `gemini-3.5-flash-lite`); `gemini-3.x-pro` on paid tiers; `LLMProvider` ABC with Anthropic + Fake alternatives.
 - **Retrieval**: `tree-sitter` for symbol extraction; pgvector cosine + Postgres
   full-text (`tsvector`) for keyword; reciprocal-rank fusion for hybrid.
 - **Security tooling**: `gitleaks`/`detect-secrets`, `bandit`, `semgrep`, `pip-audit`, `npm audit`.
