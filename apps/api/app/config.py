@@ -53,7 +53,7 @@ class Settings(BaseSettings):
 
     # ── embeddings ───────────────────────────────────────────────────────────
     embedding_provider: Literal["gemini", "fastembed", "voyage", "hash"] = "gemini"
-    embedding_model: str = "text-embedding-004"
+    embedding_model: str = "gemini-embedding-001"
     embedding_dim: int = 768
     voyage_api_key: str = ""
 
