@@ -1,0 +1,104 @@
+name: codepilot
+
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: codepilot
+      POSTGRES_PASSWORD: codepilot
+      POSTGRES_DB: codepilot
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U codepilot -d codepilot"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"        # dev convenience; drop in prod
+
+  redis:
+    image: redis:7-alpine
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/api.Dockerfile
+    env_file: .env
+    environment:
+      # container-network overrides for values that default to localhost in .env
+      DATABASE_URL: postgresql+asyncpg://codepilot:codepilot@postgres:5432/codepilot
+      DATABASE_URL_SYNC: postgresql+psycopg://codepilot:codepilot@postgres:5432/codepilot
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+    command: >
+      sh -c "alembic upgrade head &&
+             uvicorn app.main:app --host 0.0.0.0 --port 8000 --proxy-headers"
+    ports:
+      - "8000:8000"
+
+  worker:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/worker.Dockerfile
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql+asyncpg://codepilot:codepilot@postgres:5432/codepilot
+      DATABASE_URL_SYNC: postgresql+psycopg://codepilot:codepilot@postgres:5432/codepilot
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      api: { condition: service_started }
+    # Sandbox execution launches sibling containers via the host daemon.
+    # Mounted ONLY into the worker; never into sandbox containers.
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - workspaces:/data/workspaces
+    command: ["celery", "-A", "worker.celery_app:celery", "worker",
+              "--loglevel=INFO", "--concurrency=2"]
+
+  web:
+    build:
+      context: .
+      dockerfile: infrastructure/docker/web.Dockerfile
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8000
+      API_INTERNAL_BASE_URL: http://api:8000
+    depends_on:
+      api: { condition: service_started }
+    ports:
+      - "3000:3000"
+
+  # Sandbox toolchain images. Built once, then launched (locked-down) by the worker.
+  #   docker compose --profile sandbox-images build
+  sandbox-python:
+    profiles: ["sandbox-images"]
+    image: codepilot/sandbox-python:latest
+    build:
+      context: .
+      dockerfile: infrastructure/docker/sandbox-python.Dockerfile
+    command: ["true"]
+
+  sandbox-node:
+    profiles: ["sandbox-images"]
+    image: codepilot/sandbox-node:latest
+    build:
+      context: .
+      dockerfile: infrastructure/docker/sandbox-node.Dockerfile
+    command: ["true"]
+
+volumes:
+  pgdata:
+  redisdata:
+  workspaces:
