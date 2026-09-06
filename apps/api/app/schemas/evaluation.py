@@ -35,7 +35,7 @@ class EvaluationResultOut(ORMModel):
     detail_json: dict
 
 
-class EvaluationOut(ORMModel):
+class EvaluationSummaryOut(ORMModel):
     id: uuid.UUID
     benchmark_set: str
     model: str
@@ -52,4 +52,7 @@ class EvaluationOut(ORMModel):
     avg_cost_usd: float | None
     has_regression: bool
     created_at: datetime
+
+
+class EvaluationOut(EvaluationSummaryOut):
     results: list[EvaluationResultOut] = []

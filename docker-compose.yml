@@ -15,7 +15,7 @@ services:
       timeout: 5s
       retries: 10
     ports:
-      - "5432:5432"        # dev convenience; drop in prod
+      - "5433:5432"        # 5433 on the host to avoid clashing with a local Postgres; drop in prod
 
   redis:
     image: redis:7-alpine

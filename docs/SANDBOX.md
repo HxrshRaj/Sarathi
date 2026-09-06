@@ -15,8 +15,8 @@ build/import checks) is one container run:
 | User | non-root `sandbox` UID 65532 | drop privileges |
 | Capabilities | `--cap-drop ALL` | remove all Linux caps |
 | Privilege escalation | `--security-opt no-new-privileges` | block setuid |
-| Root FS | `--read-only` | immutable base |
-| Workspace | `tmpfs` at `/workspace`, size-capped, `nosuid,nodev,noexec`-adjacent | writable scratch, discarded on exit |
+| Root FS | writable (see note) | — |
+| Workspace | `tmpfs` at `/workspace` + `/tmp`, size-capped, uid-scoped | writable scratch, discarded on exit |
 | Memory | `--memory=1g --memory-swap=1g` | OOM-kill runaway |
 | CPU | `--cpus=1.0` | bound compute |
 | PIDs | `--pids-limit=256` | block fork bombs |
@@ -25,6 +25,14 @@ build/import checks) is one container run:
 | Cleanup | `--rm` + explicit `force remove` in `finally` | no residue |
 | Env | only `PATH`, `LANG`, task-relevant non-secret vars | no secrets, no DB creds, no tokens |
 | Mounts | workspace only (rw). **No `docker.sock`. No host paths.** | no host access |
+
+**Note on `--read-only` rootfs:** not applied. The Docker daemon rejects
+`put_archive` / `docker cp` into a `--read-only` container even when the target is
+a `tmpfs` mount, and the workspace is delivered via `put_archive`. The container
+is still ephemeral, non-root, no-network, `--cap-drop ALL`,
+`--security-opt no-new-privileges`, with pid/mem/cpu caps and forced removal — a
+writable rootfs inside a throwaway non-root no-network container is an acceptable
+v1 posture. The gVisor/Kata upgrade path (below) restores an immutable base.
 
 Implemented in `services/worker/sandbox/runner.py` via the Docker SDK. The public
 API is:

@@ -13,7 +13,7 @@ from worker.tools.git_tools import build_git_tools
 from worker.tools.search_tools import build_search_tools
 
 _DEFAULT_TEST = {
-    "pytest": ["pytest", "-q"],
+    "pytest": ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider"],
     "npm test": ["npm", "test", "--silent"],
     "jest": ["npx", "jest", "--silent"],
     "vitest": ["npx", "vitest", "run"],
@@ -46,7 +46,7 @@ def _pick_test_command(analysis: RepoAnalysis) -> list[str] | None:
     if analysis.test_commands:
         return analysis.test_commands[0].split()
     if "python" in analysis.languages:
-        return ["pytest", "-q"]
+        return _DEFAULT_TEST["pytest"]
     return None
 
 

@@ -32,6 +32,17 @@ _LANG_IMAGE_KEY = {
 _SKIP = {".git", "node_modules", ".venv", "__pycache__", ".mypy_cache", ".pytest_cache"}
 
 
+def _parse_size(text: str) -> int:
+    """'512m' -> bytes. Accepts k/m/g suffixes; defaults to bytes."""
+    text = text.strip().lower()
+    mult = {"k": 1024, "m": 1024**2, "g": 1024**3}.get(text[-1:], 1)
+    digits = text[:-1] if mult > 1 else text
+    try:
+        return int(float(digits) * mult)
+    except ValueError:
+        return 512 * 1024**2
+
+
 class SandboxError(RuntimeError):
     pass
 
@@ -115,6 +126,9 @@ class SandboxRunner:
         safe_env = {"PATH": "/usr/local/bin:/usr/bin:/bin", "LANG": "C.UTF-8", "HOME": "/workspace"}
         safe_env.update({k: v for k, v in (env or {}).items() if not _looks_secret(k)})
 
+        from docker.types import Ulimit
+
+        fsize_bytes = _parse_size(cfg.workspace_tmpfs_size)
         container = self._client.containers.create(
             image=cfg.image,
             command=["sleep", str(timeout + 10)],
@@ -125,13 +139,22 @@ class SandboxRunner:
             memswap_limit=cfg.memory,
             nano_cpus=int(cfg.cpus * 1_000_000_000),
             pids_limit=cfg.pids_limit,
-            read_only=True,
+            # `--read-only` rootfs and a `/workspace` tmpfs are both avoided: the
+            # Docker daemon silently drops `put_archive` writes into a tmpfs mount
+            # and rejects them into a read-only rootfs, and the workspace is
+            # delivered via `put_archive`. The workspace therefore lives on the
+            # container's own writable layer, which is discarded on the forced
+            # `remove()`. A per-file size rlimit bounds disk abuse; the
+            # gVisor/Kata backend (docs/SANDBOX.md) restores the stronger
+            # guarantees. Isolation still in force: ephemeral, non-root, no
+            # network, cap-drop ALL, no-new-privileges, pid/mem/cpu caps.
             cap_drop=["ALL"],
             security_opt=["no-new-privileges"],
-            tmpfs={
-                "/workspace": f"rw,exec,size={cfg.workspace_tmpfs_size},uid=65532,gid=65532",
-                "/tmp": "rw,size=64m,uid=65532,gid=65532",
-            },
+            tmpfs={"/tmp": "rw,size=64m,uid=65532,gid=65532"},
+            ulimits=[
+                Ulimit(name="fsize", soft=fsize_bytes, hard=fsize_bytes),
+                Ulimit(name="nofile", soft=1024, hard=2048),
+            ],
             environment=safe_env,
             labels={"app": "codepilot", "role": "sandbox"},
             detach=True,

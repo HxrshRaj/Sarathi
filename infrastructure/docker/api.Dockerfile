@@ -5,11 +5,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends git curl \
     && rm -rf /var/lib/apt/lists/*
 WORKDIR /srv
 
-# Deps first for layer caching
+# Deps first for layer caching (packages resolve on the second install, below)
 COPY apps/api/pyproject.toml apps/api/pyproject.toml
 RUN pip install --upgrade pip && pip install -e "apps/api"
 
 COPY apps/api apps/api
+# Re-run so the editable finder registers the now-present `app` package.
+RUN pip install -e "apps/api" --no-deps
 WORKDIR /srv/apps/api
 
 RUN useradd --create-home --uid 10001 appuser && chown -R appuser /srv

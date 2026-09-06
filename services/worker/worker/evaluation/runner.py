@@ -277,13 +277,14 @@ def _grade(bench: Benchmark, workspace: Path | None) -> dict:
     out["lint_ok"] = (
         _run(["ruff", "check", "."]) == 0 or _run(["python", "-m", "pyflakes", "."]) == 0
     )
+    pytest_base = ["python", "-m", "pytest", "-q", "-p", "no:cacheprovider"]
     out["regression_ok"] = (
-        _run(["pytest", "-q", "--deselect", "_hidden_tests"]) == 0
+        _run([*pytest_base, "tests", "--ignore=_hidden_tests"]) == 0
         if (workspace / "tests").exists()
         else True
     )
     out["hidden_tests_ok"] = (
-        _run(["pytest", "-q", "_hidden_tests"]) == 0 if bench.hidden_tests_dir.exists() else True
+        _run([*pytest_base, "_hidden_tests"]) == 0 if bench.hidden_tests_dir.exists() else True
     )
     return out
 

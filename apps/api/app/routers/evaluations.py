@@ -12,14 +12,16 @@ from app.errors import NotFound
 from app.models.enums import EvaluationStatus
 from app.models.evaluation import Evaluation
 from app.ratelimit import enforce
-from app.schemas.evaluation import EvaluationOut, EvaluationRunIn
+from app.schemas.evaluation import EvaluationOut, EvaluationRunIn, EvaluationSummaryOut
 from app.services.queue import TASK_EVALUATION, dispatch
 
 router = APIRouter(prefix="/evaluations", tags=["evaluations"])
 
 
-@router.post("/run", response_model=EvaluationOut, status_code=202)
-async def run_evaluation(body: EvaluationRunIn, db: DbSession, user: CurrentUser) -> EvaluationOut:
+@router.post("/run", response_model=EvaluationSummaryOut, status_code=202)
+async def run_evaluation(
+    body: EvaluationRunIn, db: DbSession, user: CurrentUser
+) -> EvaluationSummaryOut:
     await enforce("evaluation_run", str(user.id))
     ev = Evaluation(
         benchmark_set=body.benchmark_set,
@@ -33,17 +35,17 @@ async def run_evaluation(body: EvaluationRunIn, db: DbSession, user: CurrentUser
     await db.flush()
     await db.commit()
     dispatch(TASK_EVALUATION, evaluation_id=str(ev.id))
-    return EvaluationOut.model_validate(ev)
+    return EvaluationSummaryOut.model_validate(ev)
 
 
-@router.get("", response_model=list[EvaluationOut])
+@router.get("", response_model=list[EvaluationSummaryOut])
 async def list_evaluations(
     db: DbSession, _user: CurrentUser, limit: int = Query(50, le=200)
-) -> list[EvaluationOut]:
+) -> list[EvaluationSummaryOut]:
     rows = (
         await db.scalars(select(Evaluation).order_by(Evaluation.created_at.desc()).limit(limit))
     ).all()
-    return [EvaluationOut.model_validate(r) for r in rows]
+    return [EvaluationSummaryOut.model_validate(r) for r in rows]
 
 
 @router.get("/compare", response_model=list[EvaluationOut])

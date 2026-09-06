@@ -16,6 +16,10 @@ COPY apps/api apps/api
 COPY services/worker services/worker
 COPY packages/evaluation packages/evaluation
 
+# Re-run editable installs so the finders register the now-present packages
+# (`app`, `worker`). Without this the deps-only layer leaves them unimportable.
+RUN pip install -e "apps/api" --no-deps && pip install -e "services/worker" --no-deps
+
 ENV CODEPILOT_BENCHMARKS_DIR=/srv/packages/evaluation/benchmarks
 WORKDIR /srv/services/worker
 

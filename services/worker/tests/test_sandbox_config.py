@@ -23,10 +23,11 @@ def test_runner_run_uses_hardening_flags():
         'network_mode="none"',
         'cap_drop=["ALL"]',
         'security_opt=["no-new-privileges"]',
-        "read_only=True",
         "pids_limit=",
         "mem_limit=",
+        "memswap_limit=",
         'user="65532:65532"',
+        'tmpfs={',
         "remove(force=True)",
     ):
         assert needle in src, needle
