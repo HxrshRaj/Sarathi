@@ -206,9 +206,9 @@ def _init_git_repo(src: Path, dest: Path) -> None:
     shutil.copytree(src, dest)
     env = {
         "GIT_AUTHOR_NAME": "bench",
-        "GIT_AUTHOR_EMAIL": "bench@codepilot.local",
+        "GIT_AUTHOR_EMAIL": "bench@sarathi.local",
         "GIT_COMMITTER_NAME": "bench",
-        "GIT_COMMITTER_EMAIL": "bench@codepilot.local",
+        "GIT_COMMITTER_EMAIL": "bench@sarathi.local",
     }
     for args in (
         ["init", "-b", "main"],

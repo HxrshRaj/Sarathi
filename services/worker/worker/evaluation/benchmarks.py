@@ -8,7 +8,7 @@ import yaml
 
 
 def _benchmarks_root() -> Path:
-    env = os.getenv("CODEPILOT_BENCHMARKS_DIR")
+    env = os.getenv("SARATHI_BENCHMARKS_DIR")
     if env:
         return Path(env)
     # packages/evaluation/benchmarks relative to repo root (…/services/worker/worker/evaluation)

@@ -1,4 +1,4 @@
-# CodePilot — Architecture
+# Sarathi — Architecture
 
 > AI-assisted software engineering with **controlled autonomy**.
 > Not "give an LLM a shell". Every dangerous operation goes through an explicit,

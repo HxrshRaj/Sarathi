@@ -11,7 +11,7 @@ export default function PullRequestsPage() {
     <div className="space-y-4">
       <h1 className="text-lg font-semibold">Pull Requests</h1>
       {!prs?.length ? (
-        <Empty>No pull requests created by CodePilot yet.</Empty>
+        <Empty>No pull requests created by Sarathi yet.</Empty>
       ) : (
         <div className="space-y-2">
           {prs.map((pr) => (

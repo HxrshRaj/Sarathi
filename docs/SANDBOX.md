@@ -10,7 +10,7 @@ build/import checks) is one container run:
 
 | Control | Setting | Purpose |
 |---|---|---|
-| Image | `codepilot/sandbox:<lang>` pinned digest | known, minimal toolchain |
+| Image | `sarathi/sandbox:<lang>` pinned digest | known, minimal toolchain |
 | Network | `--network none` | no egress, no lateral movement |
 | User | non-root `sandbox` UID 65532 | drop privileges |
 | Capabilities | `--cap-drop ALL` | remove all Linux caps |

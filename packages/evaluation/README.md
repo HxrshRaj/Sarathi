@@ -1,4 +1,4 @@
-# CodePilot evaluation benchmarks
+# Sarathi evaluation benchmarks
 
 Each `benchmarks/<id>/` is a self-contained task:
 

@@ -90,8 +90,8 @@ async def _create_pr(task_id: str, run_id: str) -> dict:
 
         branch = (
             artifacts.branch_name
-            if artifacts.branch_name.startswith("codepilot/")
-            else f"codepilot/{artifacts.branch_name.strip('/')}"
+            if artifacts.branch_name.startswith("sarathi/")
+            else f"sarathi/{artifacts.branch_name.strip('/')}"
         )
 
         pr_row = PullRequest(

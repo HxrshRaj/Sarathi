@@ -1,13 +1,13 @@
 {
-  "name": "codepilot",
+  "name": "sarathi",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
-    "web:dev": "pnpm --filter codepilot-web dev",
-    "web:build": "pnpm --filter codepilot-web build",
-    "web:lint": "pnpm --filter codepilot-web lint",
-    "web:typecheck": "pnpm --filter codepilot-web typecheck",
-    "web:test": "pnpm --filter codepilot-web test"
+    "web:dev": "pnpm --filter sarathi-web dev",
+    "web:build": "pnpm --filter sarathi-web build",
+    "web:lint": "pnpm --filter sarathi-web lint",
+    "web:typecheck": "pnpm --filter sarathi-web typecheck",
+    "web:test": "pnpm --filter sarathi-web test"
   }
 }

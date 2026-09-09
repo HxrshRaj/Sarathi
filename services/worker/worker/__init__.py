@@ -1,3 +1,3 @@
-"""CodePilot worker + agent runtime."""
+"""Sarathi worker + agent runtime."""
 
 __version__ = "0.1.0"

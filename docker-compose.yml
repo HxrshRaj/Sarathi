@@ -1,16 +1,16 @@
-name: codepilot
+name: sarathi
 
 services:
   postgres:
     image: pgvector/pgvector:pg16
     environment:
-      POSTGRES_USER: codepilot
-      POSTGRES_PASSWORD: codepilot
-      POSTGRES_DB: codepilot
+      POSTGRES_USER: sarathi
+      POSTGRES_PASSWORD: sarathi
+      POSTGRES_DB: sarathi
     volumes:
       - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U codepilot -d codepilot"]
+      test: ["CMD-SHELL", "pg_isready -U sarathi -d sarathi"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -35,8 +35,8 @@ services:
     env_file: .env
     environment:
       # container-network overrides for values that default to localhost in .env
-      DATABASE_URL: postgresql+asyncpg://codepilot:codepilot@postgres:5432/codepilot
-      DATABASE_URL_SYNC: postgresql+psycopg://codepilot:codepilot@postgres:5432/codepilot
+      DATABASE_URL: postgresql+asyncpg://sarathi:sarathi@postgres:5432/sarathi
+      DATABASE_URL_SYNC: postgresql+psycopg://sarathi:sarathi@postgres:5432/sarathi
       REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres: { condition: service_healthy }
@@ -53,8 +53,8 @@ services:
       dockerfile: infrastructure/docker/worker.Dockerfile
     env_file: .env
     environment:
-      DATABASE_URL: postgresql+asyncpg://codepilot:codepilot@postgres:5432/codepilot
-      DATABASE_URL_SYNC: postgresql+psycopg://codepilot:codepilot@postgres:5432/codepilot
+      DATABASE_URL: postgresql+asyncpg://sarathi:sarathi@postgres:5432/sarathi
+      DATABASE_URL_SYNC: postgresql+psycopg://sarathi:sarathi@postgres:5432/sarathi
       REDIS_URL: redis://redis:6379/0
     depends_on:
       postgres: { condition: service_healthy }
@@ -85,7 +85,7 @@ services:
   #   docker compose --profile sandbox-images build
   sandbox-python:
     profiles: ["sandbox-images"]
-    image: codepilot/sandbox-python:latest
+    image: sarathi/sandbox-python:latest
     build:
       context: .
       dockerfile: infrastructure/docker/sandbox-python.Dockerfile
@@ -93,7 +93,7 @@ services:
 
   sandbox-node:
     profiles: ["sandbox-images"]
-    image: codepilot/sandbox-node:latest
+    image: sarathi/sandbox-node:latest
     build:
       context: .
       dockerfile: infrastructure/docker/sandbox-node.Dockerfile

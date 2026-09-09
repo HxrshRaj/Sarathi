@@ -6,7 +6,7 @@ import { Providers } from "@/components/providers";
 import { UserBadge } from "@/components/user-badge";
 
 export const metadata: Metadata = {
-  title: "CodePilot",
+  title: "Sarathi",
   description: "AI software engineering copilot with controlled autonomy",
 };
 
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <header className="flex items-center justify-between border-b border-border px-6 py-3">
               <div className="flex items-center gap-6">
                 <Link href="/dashboard" className="font-mono text-sm font-bold text-accent">
-                  ▲ CodePilot
+                  ▲ Sarathi
                 </Link>
                 <nav className="flex gap-4 text-sm text-muted">
                   {NAV.map(([label, href]) => (

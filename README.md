@@ -1,10 +1,10 @@
-# CodePilot
+# Sarathi
 
 **An AI software‑engineering copilot with _controlled autonomy_.**
 
 Connect a GitHub repository, give it an engineering task ("add JWT auth and tests",
 "find why checkout 500s and fix it", "add pagination to the users endpoint"), and
-CodePilot plans it, retrieves the relevant code, edits files, writes and runs
+Sarathi plans it, retrieves the relevant code, edits files, writes and runs
 tests **in a sandbox**, repairs failures, runs security analysis, reviews the
 result, shows you the diff, and — with your approval — opens a pull request.
 
@@ -94,7 +94,7 @@ celery -A worker.celery_app:celery worker --loglevel=INFO
 
 # Web
 pnpm install
-pnpm --filter codepilot-web dev
+pnpm --filter sarathi-web dev
 ```
 
 ---
@@ -106,7 +106,7 @@ make test            # api + worker + web
 # or individually:
 cd apps/api && pytest -q          # DB‑backed tests skip if Postgres is unreachable
 cd services/worker && pytest -q   # pure‑logic: path jail, secrets, chunker, tools, budget, sandbox flags, prompt safety
-pnpm --filter codepilot-web test  # diff renderer unit tests
+pnpm --filter sarathi-web test  # diff renderer unit tests
 ```
 
 CI runs all of the above against a real `pgvector` service plus `bandit`,

@@ -1,6 +1,6 @@
-# services/worker — CodePilot worker + agent runtime
+# services/worker — Sarathi worker + agent runtime
 
-Celery worker. Depends on `codepilot-api` for models/config/crypto/event contract.
+Celery worker. Depends on `sarathi-api` for models/config/crypto/event contract.
 
 ## Layout
 ```

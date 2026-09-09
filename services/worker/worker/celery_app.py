@@ -8,7 +8,7 @@ _settings = get_settings()
 configure_logging(_settings.log_level, json_output=_settings.env != "development")
 
 celery = Celery(
-    "codepilot",
+    "sarathi",
     broker=_settings.redis_url,
     backend=_settings.redis_url,
     include=["worker.tasks"],

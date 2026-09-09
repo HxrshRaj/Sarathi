@@ -1,4 +1,4 @@
-# CodePilot web — Next.js (standalone output)
+# Sarathi web — Next.js (standalone output)
 FROM node:22-slim AS deps
 WORKDIR /app
 RUN corepack enable

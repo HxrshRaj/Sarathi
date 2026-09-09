@@ -72,5 +72,5 @@ def configure_logging(level: str = "INFO", *, json_output: bool = True) -> None:
     )
 
 
-def get_logger(name: str = "codepilot") -> structlog.stdlib.BoundLogger:
+def get_logger(name: str = "sarathi") -> structlog.stdlib.BoundLogger:
     return structlog.get_logger(name)  # type: ignore[return-value]

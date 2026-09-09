@@ -1,4 +1,4 @@
-# apps/api — CodePilot API
+# apps/api — Sarathi API
 
 FastAPI service. Async SQLAlchemy 2 + Alembic + Postgres/pgvector. It orchestrates
 only — it never calls an LLM and never runs agent code (that's `services/worker`).

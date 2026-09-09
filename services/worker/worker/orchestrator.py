@@ -195,7 +195,7 @@ class Orchestrator:
             shutil.rmtree(root, ignore_errors=True)
         repo_dir = root / "repo"
         clone_at(repo.clone_url, repo_dir, ref=ref, token=token)
-        init_work_branch(repo_dir, f"codepilot/run-{str(self.run_id)[:8]}")
+        init_work_branch(repo_dir, f"sarathi/run-{str(self.run_id)[:8]}")
 
         run.workspace_path = str(repo_dir)
         db.commit()
@@ -208,9 +208,9 @@ class Orchestrator:
             stage_all(workspace)
             sha = git_commit(
                 workspace,
-                f"CodePilot: {task.title}",
-                author_name="CodePilot Runner",
-                author_email="runner@codepilot.local",
+                f"Sarathi: {task.title}",
+                author_name="Sarathi Runner",
+                author_email="runner@sarathi.local",
             )
             log.info("workspace_committed", sha=sha)
         except Exception as exc:  # noqa: BLE001 - nothing to commit is fine

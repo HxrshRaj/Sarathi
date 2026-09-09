@@ -156,7 +156,7 @@ class SandboxRunner:
                 Ulimit(name="nofile", soft=1024, hard=2048),
             ],
             environment=safe_env,
-            labels={"app": "codepilot", "role": "sandbox"},
+            labels={"app": "sarathi", "role": "sandbox"},
             detach=True,
         )
         started = time.perf_counter()

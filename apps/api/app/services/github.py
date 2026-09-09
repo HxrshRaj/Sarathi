@@ -20,7 +20,7 @@ log = get_logger("github")
 
 _GH_API = "https://api.github.com"
 _GH_OAUTH = "https://github.com/login/oauth"
-_UA = "CodePilot/0.1"
+_UA = "Sarathi/0.1"
 
 
 @dataclass(slots=True)

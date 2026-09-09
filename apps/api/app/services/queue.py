@@ -30,7 +30,7 @@ def _celery() -> Any:
         except ImportError as exc:  # pragma: no cover
             raise AppError(ErrorCategory.INFRA, "Job queue unavailable in this deployment") from exc
         url = get_settings().redis_url
-        _app = Celery("codepilot-producer", broker=url, backend=url)
+        _app = Celery("sarathi-producer", broker=url, backend=url)
     return _app
 
 

@@ -1,4 +1,4 @@
-# CodePilot worker — Celery + agent runtime. Talks to the host Docker daemon to
+# Sarathi worker — Celery + agent runtime. Talks to the host Docker daemon to
 # launch locked-down sandbox containers (socket mounted only here, never in a sandbox).
 FROM python:3.11-slim AS base
 ENV PYTHONUNBUFFERED=1 PIP_NO_CACHE_DIR=1 PYTHONDONTWRITEBYTECODE=1
@@ -20,7 +20,7 @@ COPY packages/evaluation packages/evaluation
 # (`app`, `worker`). Without this the deps-only layer leaves them unimportable.
 RUN pip install -e "apps/api" --no-deps && pip install -e "services/worker" --no-deps
 
-ENV CODEPILOT_BENCHMARKS_DIR=/srv/packages/evaluation/benchmarks
+ENV SARATHI_BENCHMARKS_DIR=/srv/packages/evaluation/benchmarks
 WORKDIR /srv/services/worker
 
 # Pre-download the embedding model so first run is fast (best-effort).

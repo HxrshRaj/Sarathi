@@ -65,7 +65,7 @@ OpenAPI served at `/api/docs`.
 ## Pull requests
 | Method | Path | Notes |
 |---|---|---|
-| GET | `/api/pull-requests` | PRs created by CodePilot for the user |
+| GET | `/api/pull-requests` | PRs created by Sarathi for the user |
 | GET | `/api/pull-requests/{id}` | one PR + generated body |
 
 ## Ops

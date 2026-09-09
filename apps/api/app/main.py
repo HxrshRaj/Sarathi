@@ -43,7 +43,7 @@ async def lifespan(_app: FastAPI):
 def create_app() -> FastAPI:
     settings = get_settings()
     app = FastAPI(
-        title="CodePilot API",
+        title="Sarathi API",
         version=__version__,
         docs_url="/api/docs",
         openapi_url="/api/openapi.json",
@@ -77,7 +77,7 @@ def create_app() -> FastAPI:
 
     @app.get("/", include_in_schema=False)
     async def root() -> dict[str, str]:
-        return {"service": "codepilot-api", "version": __version__, "docs": "/api/docs"}
+        return {"service": "sarathi-api", "version": __version__, "docs": "/api/docs"}
 
     return app
 

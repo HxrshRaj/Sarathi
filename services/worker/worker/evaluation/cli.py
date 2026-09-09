@@ -19,7 +19,7 @@ from worker.evaluation.runner import run_evaluation
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="Run a CodePilot benchmark set")
+    parser = argparse.ArgumentParser(description="Run a Sarathi benchmark set")
     parser.add_argument("benchmark_set", nargs="?", default="v1")
     parser.add_argument("--model", default=get_settings().llm_default_model)
     parser.add_argument("--prompt-bundle", default="active")

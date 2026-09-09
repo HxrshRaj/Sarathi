@@ -15,7 +15,7 @@ class FastEmbedProvider(EmbeddingProvider):
             from fastembed import TextEmbedding
         except ImportError as exc:  # pragma: no cover
             raise RuntimeError(
-                "fastembed not installed. `pip install codepilot-worker[embeddings]` "
+                "fastembed not installed. `pip install sarathi-worker[embeddings]` "
                 "or set EMBEDDING_PROVIDER=hash."
             ) from exc
         s = get_settings()

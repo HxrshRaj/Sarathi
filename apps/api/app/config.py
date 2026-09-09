@@ -27,8 +27,8 @@ class Settings(BaseSettings):
     cors_origins: str = "http://localhost:3000"
 
     # ── datastores ───────────────────────────────────────────────────────────
-    database_url: str = "postgresql+asyncpg://codepilot:codepilot@localhost:5432/codepilot"
-    database_url_sync: str = "postgresql+psycopg://codepilot:codepilot@localhost:5432/codepilot"
+    database_url: str = "postgresql+asyncpg://sarathi:sarathi@localhost:5432/sarathi"
+    database_url_sync: str = "postgresql+psycopg://sarathi:sarathi@localhost:5432/sarathi"
     redis_url: str = "redis://localhost:6379/0"
 
     # ── security ─────────────────────────────────────────────────────────────
@@ -66,8 +66,8 @@ class Settings(BaseSettings):
     retrieval_token_budget: int = 12_000
 
     # ── sandbox ──────────────────────────────────────────────────────────────
-    sandbox_image_python: str = "codepilot/sandbox-python:latest"
-    sandbox_image_node: str = "codepilot/sandbox-node:latest"
+    sandbox_image_python: str = "sarathi/sandbox-python:latest"
+    sandbox_image_node: str = "sarathi/sandbox-node:latest"
     sandbox_timeout_s: int = 120
     sandbox_memory: str = "1g"
     sandbox_cpus: float = 1.0

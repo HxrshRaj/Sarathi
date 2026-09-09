@@ -1,6 +1,6 @@
 # Evaluation harness
 
-A first-class subsystem, not an afterthought. It measures CodePilot itself so
+A first-class subsystem, not an afterthought. It measures Sarathi itself so
 that model / prompt / agent changes can be judged with evidence.
 
 ## Benchmark format

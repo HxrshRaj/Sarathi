@@ -19,7 +19,7 @@ async def write_pr(
         f"# Testing\n{test_summary}\n\n"
         f"# Security\n{security_findings or '(no findings)'}\n\n"
         f"# Review scores\n{review_scores}\n\n"
-        "Write the branch name (kebab-case, prefix `codepilot/`), commit subject "
+        "Write the branch name (kebab-case, prefix `sarathi/`), commit subject "
         "(conventional commits), commit body, PR title and PR body."
     )
     return await ctx.structured(

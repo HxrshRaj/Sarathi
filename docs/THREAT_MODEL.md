@@ -1,6 +1,6 @@
 # Threat model
 
-Method: STRIDE-ish, scoped to what CodePilot uniquely introduces — running an LLM
+Method: STRIDE-ish, scoped to what Sarathi uniquely introduces — running an LLM
 agent against untrusted repositories and executing generated code.
 
 ## Assets
