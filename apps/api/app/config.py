@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     session_secret: str = "dev-only-session-secret-change-me-please"
     session_cookie_name: str = "cp_session"
     session_ttl_hours: int = 24 * 7
+    # When the web app and API are on different domains (e.g. Vercel + a Space),
+    # session cookies must be SameSite=None; Secure to survive the OAuth redirect.
+    cross_site_cookies: bool = False
 
     # ── github oauth ─────────────────────────────────────────────────────────
     github_client_id: str = ""
@@ -66,6 +69,9 @@ class Settings(BaseSettings):
     retrieval_token_budget: int = 12_000
 
     # ── sandbox ──────────────────────────────────────────────────────────────
+    # Hosts without a Docker daemon (e.g. a Hugging Face Space) set this true so
+    # execution steps report "blocked" instead of probing a missing daemon.
+    sandbox_disabled: bool = False
     sandbox_image_python: str = "sarathi/sandbox-python:latest"
     sandbox_image_node: str = "sarathi/sandbox-node:latest"
     sandbox_timeout_s: int = 120
@@ -85,6 +91,15 @@ class Settings(BaseSettings):
     @property
     def cors_origin_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
+    @property
+    def cookie_samesite(self) -> str:
+        return "none" if self.cross_site_cookies else "lax"
+
+    @property
+    def cookie_secure(self) -> bool:
+        # SameSite=None requires Secure; also secure in production.
+        return self.cross_site_cookies or self.is_production
 
     @property
     def github_scope_list(self) -> list[str]:

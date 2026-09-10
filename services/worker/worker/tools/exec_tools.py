@@ -146,6 +146,10 @@ def build_exec_tools(ctx: ExecContext) -> list[Tool]:
 
 
 def make_runner_or_none(language: str) -> SandboxRunner | None:
+    from app.config import get_settings
+
+    if get_settings().sandbox_disabled:
+        return None
     try:
         return SandboxRunner(SandboxConfig.for_language(language))
     except SandboxError:

@@ -24,25 +24,14 @@ _STATE_COOKIE = "cp_oauth_state"
 
 def _set_session_cookies(response: Response, session_id: str) -> None:
     s = get_settings()
-    secure = s.is_production
-    response.set_cookie(
-        s.session_cookie_name,
-        session_id,
-        httponly=True,
-        samesite="lax",
-        secure=secure,
-        max_age=s.session_ttl_hours * 3600,
-        path="/",
-    )
-    response.set_cookie(
-        CSRF_COOKIE,
-        issue_token(session_id),
-        httponly=False,
-        samesite="lax",
-        secure=secure,
-        max_age=s.session_ttl_hours * 3600,
-        path="/",
-    )
+    common = {
+        "samesite": s.cookie_samesite,
+        "secure": s.cookie_secure,
+        "max_age": s.session_ttl_hours * 3600,
+        "path": "/",
+    }
+    response.set_cookie(s.session_cookie_name, session_id, httponly=True, **common)
+    response.set_cookie(CSRF_COOKIE, issue_token(session_id), httponly=False, **common)
 
 
 @router.get("/github/start")
@@ -56,8 +45,8 @@ async def github_start() -> RedirectResponse:
         _STATE_COOKIE,
         state,
         httponly=True,
-        samesite="lax",
-        secure=s.is_production,
+        samesite=s.cookie_samesite,
+        secure=s.cookie_secure,
         max_age=600,
         path="/",
     )
@@ -117,8 +106,9 @@ async def logout(request: Request, db: DbSession, _user: CurrentUser) -> Respons
     if sid:
         await revoke_session(db, sid)
     resp = Response(status_code=status.HTTP_204_NO_CONTENT)
-    resp.delete_cookie(s.session_cookie_name, path="/")
-    resp.delete_cookie(CSRF_COOKIE, path="/")
+    kw = {"path": "/", "samesite": s.cookie_samesite, "secure": s.cookie_secure}
+    resp.delete_cookie(s.session_cookie_name, **kw)
+    resp.delete_cookie(CSRF_COOKIE, **kw)
     return resp
 
 
