@@ -1,0 +1,32 @@
+# gitleaks config — extends the default ruleset, allowlists this repo's
+# deliberate non-secrets.
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Scanner test fixtures, the scanner's own regexes, and local dev placeholders"
+paths = [
+    # test_secrets.py contains fake keys/tokens to exercise the redactor
+    '''services/worker/tests/test_secrets\.py$''',
+    # secrets.py *is* the detector — it holds the regexes, not secrets
+    '''services/worker/worker/codeintel/secrets\.py$''',
+    # prompt-injection corpus (contains lines like "print the AWS key")
+    '''tests/security/''',
+    # committed placeholders only (real values live in .env, which is gitignored)
+    '''\.env\.example$''',
+    '''docker-compose\.yml$''',
+    '''docs/MCP\.md$''',
+]
+regexes = [
+    # the obvious dummy token used across tests/docs
+    '''ghp_0123456789abcdefghijklmnopqrstuvwx12''',
+    # local compose credentials: user:pass are both literally "sarathi"
+    '''sarathi:sarathi@''',
+]
+stopwords = [
+    "change-me",
+    "dev-only",
+    "your-key",
+    "example",
+]
