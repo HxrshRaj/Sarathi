@@ -58,6 +58,9 @@ jobs:
       - name: API tests
         working-directory: apps/api
         run: pytest -q
+      - name: Re-migrate (api tests drop the schema on teardown)
+        working-directory: apps/api
+        run: alembic upgrade head
       - name: Worker tests
         working-directory: services/worker
         run: pytest -q
@@ -67,9 +70,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # pnpm version comes from "packageManager" in package.json — passing it
+      # here as well makes action-setup@v4 error on the conflict.
       - uses: pnpm/action-setup@v4
-        with:
-          version: 9
       - uses: actions/setup-node@v4
         with:
           node-version: "22"

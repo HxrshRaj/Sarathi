@@ -150,7 +150,9 @@ class SandboxRunner:
             # network, cap-drop ALL, no-new-privileges, pid/mem/cpu caps.
             cap_drop=["ALL"],
             security_opt=["no-new-privileges"],
-            tmpfs={"/tmp": "rw,size=64m,uid=65532,gid=65532"},
+            # /tmp here is a path *inside the sandbox container*, mounted as a
+            # size-capped tmpfs — not a host temp directory.
+            tmpfs={"/tmp": "rw,size=64m,uid=65532,gid=65532"},  # nosec B108
             ulimits=[
                 Ulimit(name="fsize", soft=fsize_bytes, hard=fsize_bytes),
                 Ulimit(name="nofile", soft=1024, hard=2048),

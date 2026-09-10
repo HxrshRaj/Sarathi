@@ -18,7 +18,6 @@ from collections.abc import Sequence
 from alembic import op
 
 from app.config import get_settings
-from app.models.enums import IndexStatus
 
 revision: str = "0002_embedding_dim"
 down_revision: str | None = "0001_initial"
@@ -38,10 +37,9 @@ def _retype(dim: int) -> None:
         "CREATE INDEX ix_code_chunks_embedding ON code_chunks "
         "USING ivfflat (embedding vector_cosine_ops) WITH (lists = 100)"
     )
-    op.execute(
-        f"UPDATE repository_versions SET status = '{IndexStatus.PENDING.value}', "
-        f"chunk_count = 0, file_count = 0"
-    )
+    # 'pending' == IndexStatus.PENDING.value; literal here so the migration stays
+    # self-contained and free of an app-enum import.
+    op.execute("UPDATE repository_versions SET status = 'pending', chunk_count = 0, file_count = 0")
 
 
 def upgrade() -> None:

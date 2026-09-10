@@ -12,7 +12,6 @@ at a shared/dev database can't silently wipe it.
 
 from __future__ import annotations
 
-import asyncio
 import os
 from collections.abc import AsyncIterator, Iterator
 
@@ -94,7 +93,11 @@ def _clean_tables() -> Iterator[None]:
 
 
 @pytest.fixture(scope="session")
-def event_loop() -> Iterator[asyncio.AbstractEventLoop]:
+def event_loop():
+    """One event loop for the whole session so asyncpg connections created by the
+    module-level async engine stay valid across tests."""
+    import asyncio
+
     loop = asyncio.new_event_loop()
     yield loop
     loop.close()

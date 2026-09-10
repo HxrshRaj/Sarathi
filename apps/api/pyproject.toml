@@ -70,6 +70,9 @@ ignore = [
 
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
+# `.` == apps/api at rootdir, so `from tests.conftest import ...` resolves even
+# under setuptools' strict editable install (CI), where only `app` is on sys.path.
+pythonpath = ["."]
 addopts = "-ra --strict-markers"
 env = ["ENV=test", "DEV_AUTH_BYPASS=true", "EMBEDDING_PROVIDER=hash", "LLM_PROVIDER=fake"]
 filterwarnings = ["ignore::DeprecationWarning"]

@@ -24,19 +24,48 @@ _SYNC_URL = os.getenv(
 )
 
 
-def _db_reachable() -> bool:
+def _db_ready() -> bool:
+    """Reachable AND migrated — the api test suite drops the schema on teardown,
+    so 'connects' isn't enough."""
     try:
         eng = sa.create_engine(_SYNC_URL, connect_args={"connect_timeout": 3})
         with eng.connect() as c:
-            c.execute(sa.text("select 1"))
+            c.execute(sa.text("select 1 from repositories limit 0"))
         eng.dispose()
         return True
     except Exception:  # noqa: BLE001
         return False
 
 
-DB = _db_reachable()
-requires_db = pytest.mark.skipif(not DB, reason="Postgres (DATABASE_URL_SYNC) not reachable")
+DB = _db_ready()
+requires_db = pytest.mark.skipif(
+    not DB, reason="Postgres unreachable or schema not migrated (DATABASE_URL_SYNC)"
+)
+
+
+def _first_indexed_repo() -> str | None:
+    if not DB:
+        return None
+    try:
+        eng = sa.create_engine(_SYNC_URL)
+        with eng.connect() as c:
+            row = c.execute(
+                sa.text(
+                    "select r.full_name from repositories r "
+                    "join repository_versions v on v.repository_id = r.id "
+                    "where v.status = 'ready' order by r.full_name limit 1"
+                )
+            ).first()
+        eng.dispose()
+        return row[0] if row else None
+    except Exception:  # noqa: BLE001
+        return None
+
+
+INDEXED_REPO = _first_indexed_repo()
+requires_indexed_repo = pytest.mark.skipif(
+    INDEXED_REPO is None, reason="no indexed repository in this database"
+)
 
 
 def _server_params() -> StdioServerParameters:
@@ -117,14 +146,11 @@ async def test_list_indexed_repositories_returns_real_rows():
             assert isinstance(repo["chunk_count"], int)
 
 
-@requires_db
+@requires_indexed_repo
 async def test_get_repo_structure_index_only():
+    target = INDEXED_REPO
     async with stdio_client(_server_params()) as (r, w), ClientSession(r, w) as session:
         await session.initialize()
-        listing = (await session.call_tool("list_indexed_repositories", {})).structuredContent
-        if not listing["repositories"]:
-            pytest.skip("no indexed repositories in this database")
-        target = listing["repositories"][0]["full_name"]
         result = await session.call_tool(
             "get_repo_structure", {"repo": target, "include_analysis": False}
         )
@@ -137,16 +163,11 @@ async def test_get_repo_structure_index_only():
         assert d["analysis_source"] == "index-only"
 
 
-@requires_db
+@requires_indexed_repo
 async def test_search_codebase_against_first_indexed_repo():
+    target = INDEXED_REPO
     async with stdio_client(_server_params()) as (r, w), ClientSession(r, w) as session:
         await session.initialize()
-        listing = (await session.call_tool("list_indexed_repositories", {})).structuredContent
-        repos = listing["repositories"]
-        if not repos:
-            pytest.skip("no indexed repositories in this database")
-        target = repos[0]["full_name"]
-
         result = await session.call_tool(
             "search_codebase", {"repo": target, "query": "database session", "limit": 5}
         )
