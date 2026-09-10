@@ -8,7 +8,7 @@ from __future__ import annotations
 import logging
 import sys
 from contextvars import ContextVar
-from typing import Any
+from typing import IO, Any
 
 import structlog
 
@@ -46,8 +46,16 @@ def _add_correlation_id(_logger: Any, _method: str, event_dict: dict[str, Any]) 
     return event_dict
 
 
-def configure_logging(level: str = "INFO", *, json_output: bool = True) -> None:
-    logging.basicConfig(format="%(message)s", stream=sys.stdout, level=level.upper())
+def configure_logging(
+    level: str = "INFO", *, json_output: bool = True, stream: IO[str] | None = None
+) -> None:
+    """Configure structlog + stdlib logging.
+
+    `stream` defaults to stdout. The MCP stdio server passes stderr so log lines
+    never corrupt the JSON-RPC stream on stdout.
+    """
+    stream = stream or sys.stdout
+    logging.basicConfig(format="%(message)s", stream=stream, level=level.upper(), force=True)
 
     processors: list[Any] = [
         structlog.contextvars.merge_contextvars,
@@ -67,7 +75,7 @@ def configure_logging(level: str = "INFO", *, json_output: bool = True) -> None:
     structlog.configure(
         processors=processors,
         wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelName(level.upper())),
-        logger_factory=structlog.PrintLoggerFactory(),
+        logger_factory=structlog.PrintLoggerFactory(file=stream),
         cache_logger_on_first_use=True,
     )
 

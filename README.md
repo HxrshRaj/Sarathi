@@ -33,12 +33,14 @@ through an allowlisted, validated, sandboxed, audited path.
 | **Security** | In‑process secret scanner/redactor + `bandit` / `pip-audit` (sandboxed) + AI review over the diff. Deterministic findings are never suppressed by the AI pass. |
 | **Evaluation** | Benchmark format + runner that executes the **full** orchestrator per benchmark, then grades with deterministic gates + `invariants.yaml` + an advisory LLM judge. Aggregates rates; flags **regressions** vs a baseline; model/prompt comparison groups. Seed set + sample repos included. |
 | **Observability** | Every run is replayable from `agent_steps` + `tool_calls` + `file_changes` + `test_runs` + `security_findings` + `model_usage`. Structured JSON logs with a secret denylist. |
+| **MCP server** | Real Model Context Protocol server (stdio) exposing the hybrid retrieval, repo-structure scan, and evaluation harness as MCP tools with typed schemas. Connect Claude Desktop or any MCP client. See [docs/MCP.md](docs/MCP.md). |
 | **Infra** | `docker compose` (Postgres+pgvector, Redis, api, worker, web). Multi‑stage Dockerfiles. GitHub Actions CI (lint, format, types, migrate, tests, bandit/pip-audit/gitleaks, docker build). |
 
 Design docs: [architecture](docs/ARCHITECTURE.md) · [decisions](docs/DECISIONS.md)
 · [database](docs/DATABASE.md) · [API](docs/API.md) · [agents](docs/AGENTS.md) ·
 [sandbox](docs/SANDBOX.md) · [threat model](docs/THREAT_MODEL.md) ·
-[evaluation](docs/EVALUATION.md) · [roadmap](docs/ROADMAP.md).
+[evaluation](docs/EVALUATION.md) · [MCP server](docs/MCP.md) ·
+[roadmap](docs/ROADMAP.md).
 
 ---
 
@@ -142,6 +144,61 @@ regression suite / security / invariants) with an advisory LLM‑judge score.
 
 ---
 
+## MCP server
+
+Sarathi ships a real [Model Context Protocol](https://modelcontextprotocol.io)
+server (stdio transport) so any MCP client — Claude Desktop, the MCP Inspector,
+another agent — can use Sarathi's code intelligence directly. It is **not** a
+demo shell: every tool calls the same functions the worker uses.
+
+| Tool | What it does |
+|---|---|
+| `list_indexed_repositories` | indexed repos + file/chunk counts (discovery) |
+| `search_codebase` | the real hybrid retrieval — dense (pgvector) + lexical (`tsvector`) + fuzzy symbol (trigram), RRF‑fused — over one repo; returns real chunks with path, line range, score, and which retrievers matched |
+| `get_repo_structure` | language/dir map from the index + the deterministic `analyze_repo()` scan (package managers, frameworks, entry points) of a short‑lived shallow clone |
+| `run_evaluation` / `get_evaluation_result` | enqueue + poll the benchmark harness |
+
+Every tool has a Pydantic input **and** output schema, so a client renders typed
+results. Code: `services/worker/worker/mcp/`. Tests spawn the server as a real
+subprocess and drive it with a real `mcp.ClientSession`
+(`services/worker/tests/test_mcp_server.py`).
+
+```bash
+# needs a reachable Postgres and at least one indexed repo
+python -m worker.codeintel.index_cli https://github.com/OWNER/REPO.git   # index something
+python -m worker.mcp                                                    # run the server (or: sarathi-mcp)
+npx @modelcontextprotocol/inspector python -m worker.mcp                 # poke it by hand
+```
+
+**Claude Desktop** — add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "sarathi": {
+      "command": "C:\\path\\to\\aicopilot\\apps\\api\\.venv\\Scripts\\python.exe",
+      "args": ["-m", "worker.mcp"],
+      "cwd": "C:\\path\\to\\aicopilot",
+      "env": {
+        "DATABASE_URL_SYNC": "postgresql+psycopg://sarathi:sarathi@localhost:5433/sarathi",
+        "DATABASE_URL": "postgresql+asyncpg://sarathi:sarathi@localhost:5433/sarathi",
+        "GEMINI_API_KEY": "your-key",
+        "EMBEDDING_PROVIDER": "gemini", "EMBEDDING_MODEL": "gemini-embedding-001", "EMBEDDING_DIM": "768"
+      }
+    }
+  }
+}
+```
+
+Restart Claude Desktop, then: *"use `list_indexed_repositories`, then
+`search_codebase` on that repo for where the RRF fusion happens."* Claude calls
+the tool and gets back the real `worker/codeintel/retrieval.py` chunk with its
+line range and fusion score. Full detail (why stdio, why a separate process,
+`run_evaluation` being async, the Windows stdin‑inheritance gotcha that was
+fixed): **[docs/MCP.md](docs/MCP.md)**.
+
+---
+
 ## Security model (summary)
 
 - **Repository content is untrusted.** It reaches the model only inside
@@ -169,12 +226,13 @@ apps/
   web/       Next.js app
 services/
   worker/    Celery worker + agent runtime (llm, embeddings, prompts, codeintel,
-             tools, sandbox, agents, orchestrator, evaluation) + tests
+             tools, sandbox, agents, orchestrator, evaluation, mcp) + tests
+             worker/mcp/  — the MCP server (stdio); `python -m worker.mcp`
 packages/
   shared/       TS wire contracts (run events)
   evaluation/   benchmark definitions + sample repos
 infrastructure/docker/   Dockerfiles (api, worker, web, sandbox-python, sandbox-node)
-docs/          architecture, ADRs, DB, API, agents, sandbox, threat model, evaluation, roadmap
+docs/          architecture, ADRs, DB, API, agents, sandbox, threat model, evaluation, MCP, roadmap
 .github/workflows/ci.yml
 docker-compose.yml
 ```
