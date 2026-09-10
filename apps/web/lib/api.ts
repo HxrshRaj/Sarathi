@@ -13,6 +13,10 @@ import type {
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "";
 
+/** Absolute API origin (empty string = same-origin). Use for plain <a>/<form>
+ *  targets that can't go through fetch(). */
+export const API_BASE = BASE;
+
 let csrf: string | null = null;
 
 export class ApiError extends Error {

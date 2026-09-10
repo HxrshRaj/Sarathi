@@ -1,12 +1,12 @@
 "use client";
 
-import { useMe } from "@/lib/api";
+import { API_BASE, useMe } from "@/lib/api";
 
 export function UserBadge() {
   const { data: me, isError } = useMe();
   if (isError) {
     return (
-      <a className="btn" href="/api/auth/github/start">
+      <a className="btn" href={`${API_BASE}/api/auth/github/start`}>
         Sign in with GitHub
       </a>
     );
@@ -19,7 +19,7 @@ export function UserBadge() {
       )}
       <span className="text-muted">{me.login}</span>
       {me.auth_mode === "github" && (
-        <form action="/api/auth/logout" method="post">
+        <form action={`${API_BASE}/api/auth/logout`} method="post">
           <button className="text-xs text-muted hover:text-white" type="submit">
             logout
           </button>
