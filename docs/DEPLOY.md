@@ -1,95 +1,85 @@
-# Deploy — free tier (Vercel + Hugging Face Space)
+# Deploy — free tier (Vercel + Render)
 
-A $0, no-card deploy: **Vercel** for the Next.js frontend, a **Hugging Face
-Space** (Docker) for the FastAPI API + Celery worker, **Neon** for
-Postgres/pgvector, **Upstash** for Redis.
+$0, no credit card: **Vercel** for the Next.js frontend, a **Render** free web
+service for the FastAPI API + Celery worker, **Neon** for Postgres/pgvector,
+**Upstash** for Redis.
+
+> Hugging Face Spaces used to work for the backend but now require a paid plan
+> for Docker/Gradio Spaces — hence Render. The old HF config is kept in
+> `deploy/hf-space/` for anyone with HF Pro.
 
 ### What works vs the local stack
 
-| | Local `docker compose` | This free deploy |
+| | Local `docker compose` | Free deploy |
 |---|---|---|
-| UI, auth, repos, tasks, SSE run view, diff, review, PRs | ✅ | ✅ |
-| Hybrid retrieval / indexing | ✅ (gemini or fastembed embeddings) | ✅ (`hash` embeddings — no quota, no model download) |
-| MCP server | ✅ | n/a (stdio — run it locally against the Neon DB) |
-| **Code sandbox — running tests in agent runs** | ✅ | ❌ reported as **blocked** (a Space has no Docker daemon) |
+| UI, GitHub auth, repos, tasks, live SSE run view, diff, review, PRs | ✅ | ✅ |
+| Hybrid retrieval / indexing | ✅ | ✅ (`hash` embeddings — no quota, no model download) |
+| **Code sandbox — running tests in agent runs** | ✅ | ❌ reported **blocked** (no Docker daemon on free hosts) |
+| MCP server (stdio) | ✅ | run locally against the Neon DB |
 
-The last row is the only real limitation. Everything else is a live, shareable URL.
+Render free also **sleeps after 15 min idle** (~40 s cold start) and is 512 MB —
+fine for browsing + indexing a small repo; a heavy agent run may be slow.
 
 ---
 
 ## 1. Postgres — Neon (no card)
 
-1. neon.tech → new project, region near you. Enable the **pgvector** extension is
-   automatic on first `CREATE EXTENSION` (the migration does it).
-2. Copy the connection string. You need two forms:
-   - `DATABASE_URL` = `postgresql+asyncpg://USER:PASS@HOST/db?sslmode=require`
-   - `DATABASE_URL_SYNC` = `postgresql+psycopg://USER:PASS@HOST/db?sslmode=require`
-   (same creds; only the driver prefix differs). Use the **pooled** host.
+neon.tech → new project → copy the connection string in two forms (same creds,
+different driver prefix), keep `?sslmode=require`:
+- `DATABASE_URL` = `postgresql+asyncpg://USER:PASS@HOST/DB?sslmode=require`
+- `DATABASE_URL_SYNC` = `postgresql+psycopg://USER:PASS@HOST/DB?sslmode=require`
 
 ## 2. Redis — Upstash (no card)
 
-1. upstash.com → create a Redis database (global or a region near the Space).
-2. Copy the **`rediss://…`** URL → this is `REDIS_URL`.
+upstash.com → create Redis → copy the **`rediss://…`** URL → `REDIS_URL`.
 
 ## 3. GitHub OAuth app
 
-github.com/settings/developers → your existing app (or a new one):
+github.com/settings/developers → your app:
 - **Homepage URL:** `https://<project>.vercel.app`
-- **Authorization callback URL:** `https://<owner>-sarathi-api.hf.space/api/auth/github/callback`
-- Turn **“Expire user access tokens” OFF** (no refresh flow implemented).
+- **Authorization callback URL:** `https://sarathi-api.onrender.com/api/auth/github/callback`
+- **“Expire user access tokens” → OFF**
 
-## 4. Hugging Face Space (API + worker)
+## 4. Render (API + worker)
 
-1. huggingface.co → New Space → **SDK: Docker**, name it `sarathi-api`, **public**.
-2. `git clone` the Space, copy in the three files from
-   [`deploy/hf-space/`](../deploy/hf-space) (`Dockerfile`, `start.sh`, `README.md`),
-   commit, push.
-3. Space **Settings → Variables and secrets** — add everything from
-   [`deploy/hf-space/README.md`](../deploy/hf-space/README.md#set-these-as-space-secrets).
-   Generate `ENCRYPTION_KEY` with:
-   ```
-   python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
-   ```
-4. The Space builds and boots (~3–5 min). Check `https://<owner>-sarathi-api.hf.space/api/health/ready`
-   → `database: ok`, `redis: ok`.
+**Option A — Blueprint:** Render dashboard → **New → Blueprint** → pick this repo.
+It reads `render.yaml`, creates the `sarathi-api` web service. Then open the
+service → **Environment** and fill every `sync: false` var (values/notes are in
+`render.yaml`).
 
-> Free Spaces sleep after 48 h idle; first hit after a sleep cold-starts (~30 s).
+**Option B — manual:** New → **Web Service** → connect the repo →
+- Runtime **Python 3**, Root Directory blank
+- Build: `pip install -e "apps/api[worker]" -e "services/worker"`
+- Start: `bash deploy/render/start.sh`
+- Health check path: `/api/health`
+- Add the env vars from `render.yaml` (the non‑`sync:false` ones as literals, the
+  `sync:false` ones as your secrets).
+
+Generate `ENCRYPTION_KEY`:
+```
+python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
+```
+
+Deploy. Check `https://sarathi-api.onrender.com/api/health/ready` →
+`database: ok`, `redis: ok`.
 
 ## 5. Vercel (frontend)
 
-1. vercel.com → New Project → import `HxrshRaj/Sarathi`.
-2. **Root Directory:** `apps/web`  ·  Framework preset: **Next.js** (auto).
-3. Environment variables:
-   | Name | Value |
-   |---|---|
-   | `NEXT_PUBLIC_API_BASE_URL` | `https://<owner>-sarathi-api.hf.space` |
-4. Deploy. Note the production URL — put it back into the Space's `WEB_BASE_URL`
-   and `CORS_ORIGINS`, and into the GitHub OAuth app, then **factory-rebuild the
-   Space** so it picks up the values.
+New Project → import the repo →
+- **Root Directory:** `apps/web` · Framework: Next.js (auto)
+- Env: `NEXT_PUBLIC_API_BASE_URL` = `https://sarathi-api.onrender.com`
+
+Deploy, note the URL, put it back into the Render service's `WEB_BASE_URL` and
+`CORS_ORIGINS` and the GitHub OAuth app, then **Manual Deploy → Clear build
+cache & deploy** on Render.
 
 ## 6. First use
 
-1. Open the Vercel URL → **Sign in with GitHub** → authorize → back to the
-   dashboard as your GitHub user.
-2. **Repositories** → connect one of yours → pick a branch → **Index**
-   (uses `hash` embeddings; a minute or two).
-3. **Tasks → New task** against that repo. The run streams live; test steps show
-   `blocked`; the diff, security review and reviewer score are real; **Approve &
-   open PR** works.
+Vercel URL → **Sign in with GitHub** → **Repositories** → connect one → **Index**
+→ **Tasks → New task**. Test steps show `blocked`; plan/retrieval/diff/review/PR
+are real.
 
-## Redeploying after code changes
+## Redeploy
 
-- **Frontend:** Vercel redeploys on push to `main` automatically.
-- **API/worker:** factory-rebuild the Space (it re-clones `main`), or pin
-  `SARATHI_REF` to a commit in the Space Dockerfile build args.
-
-## Notes / gotchas
-
-- **Cross-site cookies:** `CROSS_SITE_COOKIES=true` makes the session cookie
-  `SameSite=None; Secure` so it survives the Vercel↔Space hop. The browser talks
-  to the Space directly (`NEXT_PUBLIC_API_BASE_URL`); CORS on the API allows the
-  Vercel origin with credentials.
-- **`ENV=production`** makes the API refuse to boot if any required secret is
-  missing — the Space logs will name what's unset.
-- **Costs:** Neon free (0.5 GB), Upstash free (10k cmd/day), HF Space free
-  (2 vCPU / 16 GB, sleeps), Vercel Hobby. All no-card.
+- Frontend: Vercel auto-deploys on push to `main`.
+- Backend: Render auto-deploys on push to `main` (or Manual Deploy).

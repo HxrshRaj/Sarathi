@@ -10,6 +10,10 @@ pinned: false
 
 # Sarathi API (Hugging Face Space)
 
+> **NOTE (2026):** Hugging Face now requires a **paid plan** for Docker Spaces.
+> For a free backend use **Render** — see [`docs/DEPLOY.md`](../../docs/DEPLOY.md).
+> This directory is kept for anyone with HF Pro.
+
 Backend for [Sarathi](https://github.com/HxrshRaj/Sarathi) — FastAPI + the Celery
 agent worker in one container. The frontend runs separately on Vercel.
 

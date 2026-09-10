@@ -1,0 +1,56 @@
+# Render blueprint for the Sarathi backend (API + Celery worker in one free
+# web service). New -> Blueprint -> point at this repo. Fill the `sync: false`
+# secrets in the dashboard afterwards. Frontend deploys separately on Vercel.
+services:
+  - type: web
+    name: sarathi-api
+    runtime: python
+    plan: free
+    rootDir: .
+    buildCommand: pip install -e "apps/api[worker]" -e "services/worker"
+    startCommand: bash deploy/render/start.sh
+    healthCheckPath: /api/health
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      - key: ENV
+        value: production
+      - key: SANDBOX_DISABLED
+        value: "true"
+      - key: CROSS_SITE_COOKIES
+        value: "true"
+      - key: LLM_PROVIDER
+        value: gemini
+      - key: LLM_DEFAULT_MODEL
+        value: gemini-3.5-flash
+      - key: EMBEDDING_PROVIDER
+        value: hash
+      - key: EMBEDDING_DIM
+        value: "768"
+      - key: RUN_WORKSPACE_ROOT
+        value: /tmp/sarathi-workspaces
+      - key: CODEPILOT_BENCHMARKS_DIR
+        value: /opt/render/project/src/packages/evaluation/benchmarks
+      # --- fill these in the dashboard (Environment tab) ---
+      - key: DATABASE_URL           # postgresql+asyncpg://…  (Neon, pooled, ?sslmode=require)
+        sync: false
+      - key: DATABASE_URL_SYNC      # postgresql+psycopg://…  (Neon, same creds)
+        sync: false
+      - key: REDIS_URL              # rediss://…  (Upstash)
+        sync: false
+      - key: ENCRYPTION_KEY         # python -c "from cryptography.fernet import Fernet;print(Fernet.generate_key().decode())"
+        sync: false
+      - key: SESSION_SECRET         # 32+ random chars
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GITHUB_CLIENT_ID
+        sync: false
+      - key: GITHUB_CLIENT_SECRET
+        sync: false
+      - key: API_BASE_URL           # https://sarathi-api.onrender.com  (this service's URL)
+        sync: false
+      - key: WEB_BASE_URL           # https://<project>.vercel.app
+        sync: false
+      - key: CORS_ORIGINS           # https://<project>.vercel.app
+        sync: false
