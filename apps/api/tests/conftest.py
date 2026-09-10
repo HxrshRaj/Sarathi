@@ -3,11 +3,17 @@
 DB-backed tests need a reachable Postgres (with pgvector). If `DATABASE_URL_SYNC`
 is unreachable the whole DB-dependent suite is skipped with a clear reason — CI
 provides a `pgvector/pgvector:pg16` service so they always run there.
+
+SAFETY: the schema fixture runs `alembic downgrade base` on teardown, which drops
+every table. It refuses to run unless the target database looks disposable
+(name contains 'test', or `ALLOW_DESTRUCTIVE_TEST_DB=1`), so pointing this suite
+at a shared/dev database can't silently wipe it.
 """
 
 from __future__ import annotations
 
 import asyncio
+import os
 from collections.abc import AsyncIterator, Iterator
 
 import pytest
@@ -15,6 +21,12 @@ import sqlalchemy as sa
 from httpx import ASGITransport, AsyncClient
 
 from app.config import get_settings
+
+
+def _db_is_disposable() -> bool:
+    url = get_settings().database_url_sync
+    name = url.rsplit("/", 1)[-1].split("?")[0].lower()
+    return "test" in name or os.getenv("ALLOW_DESTRUCTIVE_TEST_DB") == "1"
 
 
 def _db_reachable() -> bool:
@@ -41,6 +53,12 @@ def _schema() -> Iterator[None]:
     if not DB_AVAILABLE:
         yield
         return
+    if not _db_is_disposable():
+        raise RuntimeError(
+            f"Refusing to run destructive schema fixture against "
+            f"{get_settings().database_url_sync.rsplit('/', 1)[-1]!r}. Use a DB whose "
+            "name contains 'test', or set ALLOW_DESTRUCTIVE_TEST_DB=1 if you're sure."
+        )
     from alembic import command
     from alembic.config import Config
 
